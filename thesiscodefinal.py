@@ -14,7 +14,9 @@ from tkinter import ttk
 import xlsxwriter
 import matplotlib.pyplot as plt
 import time
-from  import Thread, Lock
+from multiprocessing import Process, Lock
+
+import u6
 
 
 
@@ -604,13 +606,12 @@ def make_Bdata(data):
 
     return data
 
-def make_Bdata_U6(data):
+#def make_Bdata_U6(data):
 
 
 
 def multiple(m,n):
     if (m%n) == 0:
-
         return True
     else:
         return False
@@ -788,12 +789,13 @@ def matthew_collect_data(data):
         with mutex:
             if(collected):
                 print("missed: %s, dataount: %s, packet count: %s" %
-                      (missed, dataount, packetCount))
+                      (missed, dataCount, packetCount))
                 return
                 #reaturn data
-        data.append(sum(r["AIN0"])/len(r["AIN0"]),
-                    sum(r["AIN1"])/len(r["AIN1"]),
-                    sum(r["AIN2"])/len(r["AIN2"]))
+        for r in d.streamData():
+            data.append(sum(r["AIN0"])/len(r["AIN0"]),
+                        sum(r["AIN1"])/len(r["AIN1"]),
+                        sum(r["AIN2"])/len(r["AIN2"]))
 
 
 def matthew_test():
