@@ -781,6 +781,55 @@ def tomRun():
 mutex = Lock()
 collected = False
 
+
+###################NEW 2021##########################
+
+
+def move(direc, step):
+    """Takes direc char of u,d,f,b (up, down, forward, backward)
+        and step in mm. move that distance.
+    """
+    ser.write(str.encode('q'))
+
+    machine_step = str(round(move/conversion))
+
+    ser.write((str.encode(machine_step)))
+    ser.write((str.encode(direc)))
+
+    if ser.read() != b'*':
+        print(char)
+        print("error error error ERROR")
+
+    update_position(direc, int(move))
+
+
+def update_position(direc, move):
+    global abs_posx
+    global abs_posy
+
+    global user_posx
+    global user_posy
+
+    if direc == 'b':
+        abs_posx -= move
+        user_posx -= move
+    if direc == 'f':
+        abs_posx += move
+        user_posx += move
+    if direc == 'd':
+        abs_posy -= move
+        user_posy -= move
+    if direc == 'u':
+        abs_posy += move
+        user_posy += move
+
+
+
+
+
+
+
+
 def matthew_collect_data(data):
     missed = 0
     dataCount = 0
