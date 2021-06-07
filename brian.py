@@ -24,23 +24,7 @@ SCAN_FREQUENCY = 20000
 
 d = None
 
-###############################################################################
-# U3
-# Uncomment these lines to stream from a U3
-###############################################################################
-'''
-# At high frequencies ( >5 kHz), the number of samples will be MAX_REQUESTS
-# times 48 (packets per request) times 25 (samples per packet).
-d = u3.U3()
-# To learn the if the U3 is an HV
-d.configU3()
-# For applying the proper calibration to readings.
-d.getCalibrationData()
-# Set the FIO0 and FIO1 to Analog (d3 = b00000011)
-d.configIO(FIOAnalog=3)
-print("Configuring U3 stream")
-d.streamConfig(NumChannels=2, PChannels=[0, 1], NChannels=[31, 31], Resolution=3, ScanFrequency=SCAN_FREQUENCY)
-'''
+
 ###############################################################################
 # U6
 # Uncomment these lines to stream from a U6
@@ -52,7 +36,7 @@ d = u6.U6()
 d.getCalibrationData()
 print("Configuring U6 stream")
 d.streamConfig(NumChannels=3, ChannelNumbers=[0, 1, 2], ChannelOptions=[0, 0, 0],
-               SettlingFactor=1, ResolutionIndex=1, ScanFrequency=5)
+               SettlingFactor=1, ResolutionIndex=1, ScanFrequency=SCAN_FREQUENCY)
 
 
 ###############################################################################
@@ -125,7 +109,7 @@ finally:
 
     sampleTotal = packetCount * d.streamSamplesPerPacket
 
-    scanTotal = sampleTotal / 2  # sampleTotal / NumChannels
+    scanTotal = sampleTotal / 3  # sampleTotal / NumChannels
     print("%s requests with %s packets per request with %s samples per packet = %s samples total." %
           (dataCount, (float(packetCount)/dataCount), d.streamSamplesPerPacket, sampleTotal))
     print("%s samples were lost due to errors." % missed)

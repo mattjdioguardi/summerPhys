@@ -14,6 +14,7 @@ from tkinter import ttk
 import xlsxwriter
 import matplotlib.pyplot as plt
 import time
+from  import Thread, Lock
 
 
 
@@ -106,7 +107,6 @@ def go_to_abs_zero():
     if (move_to_start('x', 0)== True) and (move_to_start('y', 0)==True):
         print_position()
 
-
 def set_user_zero():
     global user_posx
     global user_posy
@@ -136,7 +136,6 @@ def adjust_user_zero_x():
         user_offx -= adjustx
 
 
-
 def adjust_user_zero_y():
     global user_offy
     adjusty = int(entry11.get())
@@ -150,7 +149,6 @@ def adjust_user_zero_y():
             print_abs_position()
     else:
         user_offy -= adjusty
-
 
 
 def print_position():
@@ -404,8 +402,6 @@ def set_move(move, orientation):
     return move
 
 
-
-
 def limits_fit(move, direc):
 
    if direc == 'b':
@@ -427,7 +423,6 @@ def limits_fit(move, direc):
 
             return True
    return False
-
 
 
 def update_limits(direc, move):
@@ -473,9 +468,6 @@ def update_position(direc, move):
         abs_posy += move
         user_posy += move
 
-
-
-
 def find_delta_direc(xstart, xstop, direc, orientation):
     delta = xstop - xstart
     if orientation == 'x':
@@ -514,6 +506,8 @@ def move_to_start(orientation, start):
             delta_direc = 'u'
     zeromove_m(delta_direc, str(move), 'f')
     return True
+
+    #below will never get called
     if limits_fit(move, delta_direc) == True:
         zeromove_m(delta_direc, str(move), 'f')
         return True
@@ -659,9 +653,6 @@ def map_line(initial, final, delta_direc, step, List_points):
     plot_the_data(List_points, Bdata)
 
 
-
-
-
 def split_Bdata(Bdata,i):
      return Bdata[i]
 
@@ -731,9 +722,6 @@ def plot_the_data(List, Bdata):
 
 
 
-
-
-
 #############################################################################
 
 
@@ -761,7 +749,7 @@ def tomRun():
         dirx_f = set_dir(xstop, orientation)
 
         initial = set_move(xstart, orientation)
-        final = set_move(xstop, orientation)
+        final = (xstop, orientation)
 
         delta = final - initial
         print(delta)
@@ -788,4 +776,45 @@ def tomRun():
         num_run += 1
     go_to_abs_zero()
 
-win.mainloop()
+
+mutex = Lock()
+collected = False
+
+def matthew_collect_data(data):
+    missed = 0
+    dataCount = 0
+    packetCount = 0
+    while(True):
+        with mutex:
+            if(collected):
+                print("missed: %s, dataount: %s, packet count: %s" %
+                      (missed, dataount, packetCount))
+                return
+                #reaturn data
+        data.append(sum(r["AIN0"])/len(r["AIN0"]),
+                    sum(r["AIN1"])/len(r["AIN1"]),
+                    sum(r["AIN2"])/len(r["AIN2"]))
+
+
+def matthew_test():
+
+    #go_to_abs_zero()
+    mydata = []
+    p = Process(target = matthew_collect_data, args = (mydata,))
+    p.start()
+    time.sleep(4.0)
+    with mutex:
+        collected = True
+    #go_to_abs_zero()
+    #move_to_start('x', 50)
+    p.join()
+    print(mydata)
+
+if __name__ == '__main__':
+    matthew_test()
+
+
+
+
+
+#win.mainloop()
