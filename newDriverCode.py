@@ -2,7 +2,7 @@ import serial
 import tkinter as tk
 import time
 from multiprocessing import Process, Lock
-import u6
+#import u6
 from functools import partial
 import math
 
@@ -108,7 +108,7 @@ def relative_home(relative_pos):
     else:
         move('f',-relative_pos[0])
 
-    if(abs_pos[1]) > 0:
+    if(relative_pos[0]) > 0:
         move('d',relative_pos[1])
     else:
         move('u',-relative_pos[1])
@@ -268,35 +268,35 @@ mode_select.grid(column=1,row=7)
 
 
 
-def matthew_collect_data(data):
-    missed = 0
-    dataCount = 0
-    packetCount = 0
-    while(True):
-        with mutex:
-            if(collected):
-                print("missed: %s, dataount: %s, packet count: %s" %
-                      (missed, dataCount, packetCount))
-                return
-                #reaturn data
-        for r in d.streamData():
-            data.append(sum(r["AIN0"])/len(r["AIN0"]),
-                        sum(r["AIN1"])/len(r["AIN1"]),
-                        sum(r["AIN2"])/len(r["AIN2"]))
+# def matthew_collect_data(data):
+#     missed = 0
+#     dataCount = 0
+#     packetCount = 0
+#     while(True):
+#         with mutex:
+#             if(collected):
+#                 print("missed: %s, dataount: %s, packet count: %s" %
+#                       (missed, dataCount, packetCount))
+#                 return
+#                 #reaturn data
+#         for r in d.streamData():
+#             data.append(sum(r["AIN0"])/len(r["AIN0"]),
+#                         sum(r["AIN1"])/len(r["AIN1"]),
+#                         sum(r["AIN2"])/len(r["AIN2"]))
 
-def matthew_test():
+# def matthew_test():
 
-    #go_to_abs_zero()
-    mydata = []
-    p = Process(target = matthew_collect_data, args = (mydata,))
-    p.start()
-    time.sleep(4.0)
-    with mutex:
-        collected = True
-    #go_to_abs_zero()
-    #move_to_start('x', 50)
-    p.join()
-    print(mydata)
+#     #go_to_abs_zero()
+#     mydata = []
+#     p = Process(target = matthew_collect_data, args = (mydata,))
+#     p.start()
+#     time.sleep(4.0)
+#     with mutex:
+#         collected = True
+#     #go_to_abs_zero()
+#     #move_to_start('x', 50)
+#     p.join()
+#     print(mydata)
 
 if __name__ == '__main__':
 
