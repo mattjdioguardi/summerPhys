@@ -89,6 +89,8 @@ def move(direc, step):
     relative_Label.config(text = "%.3g , %.3g" %(relative_pos[0],relative_pos[1]))
 
 
+
+
 def abs_home(abs_pos):
     if(abs_pos[0]) > 0:
         move('b',abs_pos[0])
@@ -157,7 +159,8 @@ def scan(relative_pos):
     ydir = 'u' if yfinal > yinitial else 'd'
 
     goTo(xinitial,yinitial,relative_pos)
-    while (relative_pos[0] != xfinal or relative_pos[1] != yfinal):
+    while (round(relative_pos[0]) != xfinal or round(relative_pos[1]) != yfinal):
+        print(relative_pos)
 
         if(abs(relative_pos[0] - xfinal) >= xstep):
             move(xdir,xstep)
@@ -252,10 +255,16 @@ def advancedNewWindow():
     advanced.title("advanced settings")
     advanced.geometry("300x300")
     tk.Button(advanced, text="set absolute 0",command=partial(set_absolute_zero,abs_pos,abs_steps)).grid(column=1, row=3)
+    step_Label = tk.Label(advanced, text = "%s , %s" %(abs_steps[0],abs_steps[1]))
+    step_Label.grid(column=1,row=1)
 
 tk.Button(win, text="Advanced Settings",command=advancedNewWindow).grid(column=1, row=20)
 
-
+mode = tk.StringVar(win)
+modes = {"labjack", "GPIB", "labjack + GBIB"}
+mode.set("labjack")
+mode_select = tk.OptionMenu(win,mode,*modes)
+mode_select.grid(column=1,row=7)
 
 
 
