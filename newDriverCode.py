@@ -21,7 +21,7 @@ import math
 #
 
 #################################serial setup###################################
-#ser = serial.Serial('/dev/cu.usbmodem0E22D9A1')  # open serial port
+ser = serial.Serial('/dev/cu.usbmodem0E22D9A1')  # open serial port
 
 ########globals :(((##################
 abs_pos = [0,0]
@@ -69,12 +69,12 @@ def move(direc, step):
     """Takes direc char of u,d,f,b (up, down, forward, backward)
         and step in mm. move that distance.
     """
-    # ser.write(str.encode('q'))
-    #
-    # machine_step = str(round(step/conversion))
-    #
-    # ser.write((str.encode(machine_step)))
-    # ser.write((str.encode(direc)))
+    ser.write(str.encode('q'))
+
+    machine_step = str(round(step/conversion))
+
+    ser.write((str.encode(machine_step)))
+    ser.write((str.encode(direc)))
     #
     # if ser.read() != b'*':
     #     print(char)
