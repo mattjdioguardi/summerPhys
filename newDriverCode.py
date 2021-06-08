@@ -1,14 +1,10 @@
 import serial
 import tkinter as tk
-from tkinter import ttk, IntVar
 import time
 from multiprocessing import Process, Lock
 import u6
+from functools import partial
 
-
-#initialize at some place else
-abs_pos = [0,0]
-relative_pos = [0,0]
 
 
 ###################NEW 2021##########################
@@ -34,26 +30,35 @@ win.title("3D Mapper")
 win.geometry("1000x1000")
 
 
+def set_absolute_zero(abs_pos):
+    abs_pos[0] = 0
+    abs_pos[1] = 0
 
+def set_relative_zero(abs_pos):
+    relative_pos[0] = 0
+    relative_pos[1] = 0
 
+def abs_home(abs_pos):
+    if(abs_pos[0]) > 0:
+        move('b',abs_pos[0])
+    else:
+        move('f',-abs_pos[0])
 
-ttk.Button(win, text="up 1",command=lambda: move('u', 1)).grid(column=4, row=1)
-ttk.Button(win, text="up 10",command=lambda: move('u', 10)).grid(column=4, row=2)
-ttk.Button(win, text="up 100",command=lambda: move('u', 100)).grid(column=4, row=3)
+    if(abs_pos[1]) > 0:
+        move('d',abs_pos[1])
+    else:
+        move('u',-abs_pos[1])
 
-ttk.Button(win, text="down 1",command=lambda: move('d', 1)).grid(column=4, row=5)
-ttk.Button(win, text="down 10",command=lambda: move('d', 10)).grid(column=4, row=6)
-ttk.Button(win, text="down 100",command=lambda: move('d', 100)).grid(column=4, row=7)
+def relative_home(relative_pos):
+    if(relative_pos[0]) > 0:
+        move('b',relative_pos[0])
+    else:
+        move('f',-relative_pos[0])
 
-
-ttk.Button(win, text="back 1",command=lambda: move('b', 1)).grid(column=1, row=4)
-ttk.Button(win, text="back 10",command=lambda: move('b', 10)).grid(column=2, row=4)
-ttk.Button(win, text="back 100",command=lambda: move('b', 100)).grid(column=3, row=4)
-
-ttk.Button(win, text="forward 1",command=lambda: move('f', 1)).grid(column=5, row=4)
-ttk.Button(win, text="forward 10",command=lambda: move('f', 10)).grid(column=6, row=4)
-ttk.Button(win, text="forward 100",command=lambda: move('f', 100)).grid(column=7, row=4)
-
+    if(relative_pos[1]) > 0:
+        move('d',relative_pos[1])
+    else:
+        move('u',-relative_pos[1])
 
 
 
@@ -64,7 +69,7 @@ def move(direc, step):
     """
     ser.write(str.encode('q'))
 
-    machine_step = str(round(move/conversion))
+    machine_step = str(round(step/conversion))
 
     ser.write((str.encode(machine_step)))
     ser.write((str.encode(direc)))
@@ -73,12 +78,15 @@ def move(direc, step):
         print(char)
         print("error error error ERROR")
 
-    update_position(direc, int(move))
+    global abs_pos
+    global relative_pos
+    update_position(direc, step, abs_pos, relative_pos)
+    a.config(text = "%s , %s" %(abs_pos[0],abs_pos[1]))
 
 
 
 
-#later change to only manage absolute pos and calculte realtive pos based off offset when need be
+    #later change to only manage absolute pos and calculte realtive pos based off offset when need be
 def update_position(direc, move, abs_pos, relative_pos):
     if direc == 'b':
         abs_pos[0] -= move
@@ -94,6 +102,25 @@ def update_position(direc, move, abs_pos, relative_pos):
         relative_pos[1] += move
 
 
+a = tk.Label(win, text = "%s , %s" %(abs_pos[0],abs_pos[1]))
+a.grid(column=4, row=4)
+
+
+tk.Button(win, text="up 1",command=partial(move,'u', 1)).grid(column=4, row=3)
+tk.Button(win, text="up 10",command=partial(move,'u', 10)).grid(column=4, row=2)
+tk.Button(win, text="up 100",command=partial(move,'u', 100)).grid(column=4, row=1)
+
+tk.Button(win, text="down 1",command=partial(move,'d', 1)).grid(column=4, row=5)
+tk.Button(win, text="down 10",command=partial(move,'d', 10)).grid(column=4, row=6)
+tk.Button(win, text="down 100",command=partial(move,'d', 100)).grid(column=4, row=7)
+
+tk.Button(win, text="back 1",command=partial(move,'b', 1)).grid(column=3, row=4)
+tk.Button(win, text="back 10",command=partial(move,'b', 10)).grid(column=2, row=4)
+tk.Button(win, text="back 100",command=partial(move,'b', 100)).grid(column=1, row=4)
+
+tk.Button(win, text="forward 1",command=partial(move,'f', 1)).grid(column=5, row=4)
+tk.Button(win, text="forward 10",command=partial(move,'f', 10)).grid(column=6, row=4)
+tk.Button(win, text="forward 100",command=partial(move,'f', 100)).grid(column=7, row=4)
 
 
 def matthew_collect_data(data):
@@ -112,7 +139,6 @@ def matthew_collect_data(data):
                         sum(r["AIN1"])/len(r["AIN1"]),
                         sum(r["AIN2"])/len(r["AIN2"]))
 
-
 def matthew_test():
 
     #go_to_abs_zero()
@@ -128,5 +154,23 @@ def matthew_test():
     print(mydata)
 
 if __name__ == '__main__':
+
+    #initialize at some place else
+    abs_pos = [0,0]
+    relative_pos = [0,0]
+
+    #ser = serial.Serial('/dev/cu.usbmodem0E22D9A1')  # open serial port
+    conversion = 0.0015716
+    limit_b = 10000
+    limit_f = 10000
+    limit_u = 10000
+    limit_d = 10000
+
+
+
+
+
+
+
     win.mainloop()
 
