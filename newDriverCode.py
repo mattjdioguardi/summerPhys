@@ -220,11 +220,11 @@ def saveData(data):
     [[z coordonates], [y coordonates], [Bx], [By], [Bz]] to a spreadsheet that
     is timestamped"""
     now = datetime.now()
-    dateString = now.strftime("%d/%m/%Y %H:%M:%S")
+    dateString = now.strftime("%d-%m-%Y %H:%M:%S")
 
     df = pd.DataFrame({'z':data[0], 'y': data[1], 'Bx':data[2],
                        'By':data[3],'Bz':data[4],})
-    writer = pd.writer("Bfield_at_"+dateString)
+    writer = pd.ExcelWriter("Bfield_at_"+dateString+ '.xlsx')
     df.to_excel(writer)
     writer.save()
 
