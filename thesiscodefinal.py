@@ -292,7 +292,6 @@ def horizontal_click():
         print('out of bounds')
 
 
-
 def vertical_click():
 
     orientation = 'y'
@@ -789,7 +788,7 @@ def move(direc, step):
     """Takes direc char of u,d,f,b (up, down, forward, backward)
         and step in mm. move that distance.
     """
-    ser.write(str.encode('q'))
+    write(str.encode('q'))
 
     machine_step = str(round(move/conversion))
 
