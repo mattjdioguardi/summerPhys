@@ -4,7 +4,7 @@ import time
 import pyvisa
 from datetime import datetime
 from multiprocessing import Process, Lock
-#import u6
+import u6
 from functools import partial
 import matplotlib.pyplot as plt
 import math
@@ -25,11 +25,11 @@ inst.write("SENS:VOLT:NPLC 5")		#integration time in PLCs, 1 PLC= 1power line cy
 inst.write("SENS:VOLT:DC:AVER:COUN 6")
 
 # #############################u6 setup##########################################
-# d = u6.U6()
-# d.getCalibrationData()
-# print("Configuring U6 stream")
-# d.streamConfig(NumChannels=3, ChannelNumbers=[0, 1, 2], ChannelOptions=[0, 0, 0],
-#                SettlingFactor=1, ResolutionIndex=1, ScanFrequency=1000)
+d = u6.U6()
+d.getCalibrationData()
+print("Configuring U6 stream")
+d.streamConfig(NumChannels=3, ChannelNumbers=[0, 1, 2], ChannelOptions=[0, 0, 0],
+                SettlingFactor=1, ResolutionIndex=1, ScanFrequency=1000)
 
 ################################serial setup###################################
 ser = serial.Serial('/dev/cu.usbmodem0E22D9A1')  # open serial port
@@ -179,6 +179,7 @@ def scan(relative_pos):
     Scan_Data = [[]]*5
 
     while (round(relative_pos[0]) != xfinal or round(relative_pos[1]) != yfinal):
+        collect(relative_pos, Scan_Data)
         if(abs(relative_pos[0] - xfinal) >= xstep):
             move(xdir,xstep)
         elif(relative_pos[0] != xfinal):
@@ -187,9 +188,8 @@ def scan(relative_pos):
             move(ydir,ystep)
         elif(relative_pos[1] != yfinal):
             move(ydir,abs(relative_pos[1] - yfinal))
-
-        collect(relative_pos, Scan_Data)
-
+    collect(relative_pos, Scan_Data)
+    saveData(Scan_Data)
     goTo(xfinal,yfinal,relative_pos)
 
 def GPIB_Point(relative_pos):
@@ -200,17 +200,17 @@ def GPIB_Point(relative_pos):
         Bfield[0] += float(inst.query("MEAS:VOLT:DC? (@204)")[:15])
         Bfield[1] += float(inst.query("MEAS:VOLT:DC? (@206)")[:15])
         Bfield[2] += float(inst.query("MEAS:VOLT:DC? (@203)")[:15])
-        Bfield = [relative_pos[0], relative_pos[1]] + [x/5 for x in Bfield]
-        return Bfield
+    Bfield = [relative_pos[0], relative_pos[1]] + [x/5 for x in Bfield]
+    return Bfield
 
 def U6_point(relative_pos):
     d.streamStart()
     Bcur = next(d.streamData())
     d.streamStop()
-    Bfield = [relative_pos[0], relative_pos][1],
+    Bfield = [relative_pos[0], relative_pos[1],
     sum(Bcur["AIN0"])/len(Bcur["AIN0"]),
     sum(Bcur["AIN1"])/len(Bcur["AIN1"]),
-    sum(Bcur["AIN2"])/len(Bcur["AIN2"])]]
+    sum(Bcur["AIN2"])/len(Bcur["AIN2"])]
     return Bfield
 
 def collect(relative_pos,data):
