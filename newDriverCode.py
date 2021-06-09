@@ -29,7 +29,7 @@ inst.write("SENS:VOLT:DC:AVER:COUN 6")
 # d.getCalibrationData()
 # print("Configuring U6 stream")
 # d.streamConfig(NumChannels=3, ChannelNumbers=[0, 1, 2], ChannelOptions=[0, 0, 0],
-#                SettlingFactor=1, ResolutionIndex=1, ScanFrequency=5)
+#                SettlingFactor=1, ResolutionIndex=1, ScanFrequency=1000)
 
 ################################serial setup###################################
 ser = serial.Serial('/dev/cu.usbmodem0E22D9A1')  # open serial port
@@ -188,22 +188,9 @@ def scan(relative_pos):
         elif(relative_pos[1] != yfinal):
             move(ydir,abs(relative_pos[1] - yfinal))
 
-        if(mode.get() == "GPIB"):
-            GPIB_collect(Scan_Data,Scan_Data)
-        elif(mode.get() == "labjack"):
-            print()
-        elif(mode.get() == "labjack + GBIB"):
-            print()
+        collect(relative_pos, Scan_Data)
+
     goTo(xfinal,yfinal,relative_pos)
-
-
-def GPIB_collect(relative_pos,data):
-    """Records data from GPIB  and appends them to a passed list of form
-    [[z coordonates], [y coordonates], [Bx], [By], [Bz]] where each entry of the
-    same index is one data point"""
-    Bfield = GPIB_Point(relative_pos)1
-    for x in range(len(Bfield)):
-        data[x].append(Bfield[x])
 
 def GPIB_Point(relative_pos):
     """records field at a single point from GPIB and returns it in the form
@@ -213,8 +200,31 @@ def GPIB_Point(relative_pos):
         Bfield[0] += float(inst.query("MEAS:VOLT:DC? (@204)")[:15])
         Bfield[1] += float(inst.query("MEAS:VOLT:DC? (@206)")[:15])
         Bfield[2] += float(inst.query("MEAS:VOLT:DC? (@203)")[:15])
-    Bfield = [relative_pos[0], relative_pos[1]] + [x/5 for x in Bfield]
+        Bfield = [relative_pos[0], relative_pos[1]] + [x/5 for x in Bfield]
+        return Bfield
+
+def U6_point(relative_pos):
+    d.streamStart()
+    Bcur = next(d.streamData())
+    d.streamStop()
+    Bfield = [relative_pos[0], relative_pos][1],
+    sum(Bcur["AIN0"])/len(Bcur["AIN0"]),
+    sum(Bcur["AIN1"])/len(Bcur["AIN1"]),
+    sum(Bcur["AIN2"])/len(Bcur["AIN2"])]]
     return Bfield
+
+def collect(relative_pos,data):
+    """Records data from GPIB  and appends them to a passed list of form
+    [[z coordonates], [y coordonates], [Bx], [By], [Bz]] where each entry of the
+    same index is one data point"""
+
+    if(mode.get() == "GPIB"):
+        Bfield = GPIB_Point(relative_pos)
+    elif(mode.get() == "labjack"):
+        Bfield = U6_point(relative_pos)
+    for x in range(len(Bfield)):
+        data[x].append(Bfield[x])
+
 
 def saveData(data):
     """saves passed data in the form
@@ -233,7 +243,12 @@ def Field_Window(relative_pos):
     """opens a new window displaying the field at the current point"""
     Field = tk.Toplevel(win)
     Field.geometry("300x300")
-    Cur_Field = GPIB_Point(relative_pos)
+
+    if(mode.get() == "GPIB"):
+        Cur_Field = GPIB_Point(relative_pos)
+    elif(mode.get() == "labjack"):
+        Cur_Field = U6_point(relative_pos)
+
     tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[2])).grid(column=1,row=1)
     tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[3])).grid(column=1,row=2)
     tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[4])).grid(column=1,row=3)
