@@ -176,7 +176,7 @@ def scan(relative_pos):
     ydir = 'u' if yfinal > yinitial else 'd'
 
     goTo(xinitial,yinitial,relative_pos)
-    Scan_Data = [[]]*5
+    Scan_Data = [[],[],[],[],[]]
 
     while (round(relative_pos[0]) != xfinal or round(relative_pos[1]) != yfinal):
         collect(relative_pos, Scan_Data)
