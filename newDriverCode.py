@@ -179,13 +179,6 @@ def scan(relative_pos):
     Scan_Data = [[]]*5
 
     while (round(relative_pos[0]) != xfinal or round(relative_pos[1]) != yfinal):
-        if(mode.get() == "GPIB"):
-            GPIB_collect(Scan_Data,Scan_Data)
-        elif(mode.get() == "labjack"):
-            print()
-        elif(mode.get() == "labjack + GBIB"):
-            print()
-
         if(abs(relative_pos[0] - xfinal) >= xstep):
             move(xdir,xstep)
         elif(relative_pos[0] != xfinal):
@@ -195,12 +188,20 @@ def scan(relative_pos):
         elif(relative_pos[1] != yfinal):
             move(ydir,abs(relative_pos[1] - yfinal))
 
+        if(mode.get() == "GPIB"):
+            GPIB_collect(Scan_Data,Scan_Data)
+        elif(mode.get() == "labjack"):
+            print()
+        elif(mode.get() == "labjack + GBIB"):
+            print()
+    goTo(xfinal,yfinal,relative_pos)
+
 
 def GPIB_collect(relative_pos,data):
     """Records data from GPIB  and appends them to a passed list of form
     [[z coordonates], [y coordonates], [Bx], [By], [Bz]] where each entry of the
     same index is one data point"""
-    Bfield = GPIB_Point(relative_pos)
+    Bfield = GPIB_Point(relative_pos)1
     for x in range(len(Bfield)):
         data[x].append(Bfield[x])
 
@@ -225,7 +226,7 @@ def saveData(data):
     df = pd.DataFrame({'z':data[0], 'y': data[1], 'Bx':data[2],
                        'By':data[3],'Bz':data[4],})
     writer = pd.ExcelWriter("Bfield_at_"+dateString+ '.xlsx')
-    df.to_excel(writer)
+    df.to_excel(writer,index=False)
     writer.save()
 
 def Field_Window(relative_pos):
