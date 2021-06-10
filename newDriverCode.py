@@ -39,7 +39,8 @@ abs_pos = [0,0]
 relative_pos = [0,0]
 relative_offset = [0,0]
 abs_steps = [0,0]
-
+labjack_Voltage = [0,10]
+Volt_to_gauss = 1
 
 #clean up all the single lines of assignment for the lists its messy
 def set_absolute_zero(abs_pos, abs_steps):
@@ -189,6 +190,7 @@ def scan(relative_pos):
         elif(relative_pos[1] != yfinal):
             move(ydir,abs(relative_pos[1] - yfinal))
     collect(relative_pos, Scan_Data)
+    plot_Bfield(Scan_Data)
     saveData(Scan_Data)
     goTo(xfinal,yfinal,relative_pos)
 
@@ -208,9 +210,9 @@ def U6_point(relative_pos):
     Bcur = next(d.streamData())
     d.streamStop()
     Bfield = [relative_pos[0], relative_pos[1],
-    sum(Bcur["AIN0"])/len(Bcur["AIN0"]),
-    sum(Bcur["AIN1"])/len(Bcur["AIN1"]),
-    sum(Bcur["AIN2"])/len(Bcur["AIN2"])]
+    (sum(Bcur["AIN0"])/len(Bcur["AIN0"]))*Volt_to_gauss,
+    (sum(Bcur["AIN1"])/len(Bcur["AIN1"]))*Volt_to_gauss,
+    (sum(Bcur["AIN2"])/len(Bcur["AIN2"]))*Volt_to_gauss]
     return Bfield
 
 def collect(relative_pos,data):
@@ -252,6 +254,36 @@ def Field_Window(relative_pos):
     tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[2])).grid(column=1,row=1)
     tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[3])).grid(column=1,row=2)
     tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[4])).grid(column=1,row=3)
+
+
+
+def plot_Bfield(data):
+    """[[z coordonates], [y coordonates], [Bx], [By], [Bz]]"""
+
+    fig, (xBxBy,xBz) = plt.subplots(nrows=1, ncols=2, sharex=True,figsize=(12, 6))
+
+    xBxBy.plot(data[0],data[2], color='tab:blue')
+    xBxBy.plot(data[0],data[3],  color='tab:orange')
+    xBz.plot(data[0],data[4],  color='tab:red')
+
+    #add features
+    xBxBy.set_xlabel('mm displacement')
+    xBxBy.set_ylabel('B field (Gauss)')
+    xBxBy.legend(('x direction','y direction'))
+
+    xBz.set_xlabel('mm displacement')
+    xBz.set_ylabel('B field (Gauss)')
+    xBz.legend(('z direction'))
+
+    fig.tight_layout(pad=3.0)
+
+    #save figure
+    plt.savefig('Bfield.png')
+
+    #display the plot
+    plt.show()
+
+
 
 
 #########################tk nonsense ###############################################
