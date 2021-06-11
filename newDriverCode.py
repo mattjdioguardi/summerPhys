@@ -128,16 +128,15 @@ def relative_home(relative_pos):
 def goTo(x,y,pos):
     """given an x(z) and y position the stepers move to those coordinates in
     terms of the given position relative or absolute can be passed"""
-    if(x<xlim and x >= 0):
-        if(x<pos[0]):
-            move('b',pos[0]-x)
-        else:
-            move('f',x-pos[0])
-    if(y<ylim and y >= 0):
-        if(y<pos[1]):
-            move('d',pos[1]-y)
-        else:
-            move('u',y-pos[1])
+    
+    if(x<pos[0]):
+        move('b',pos[0]-x)
+    else:
+        move('f',x-pos[0])
+    if(y<pos[1]):
+        move('d',pos[1]-y)
+    else:
+        move('u',y-pos[1])
 
 #gross way to do this but tkninter is annoying
 def goToClick(relative_pos):
