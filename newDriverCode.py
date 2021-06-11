@@ -140,12 +140,12 @@ def goTo(x,y,pos):
             move('u',y-pos[1])
 
 #gross way to do this but tkninter is annoying
-def goToClick(abs_pos):
+def goToClick(relative_pos):
     """takes the values in the goto bozes on the interface and sends those to
     goTo. This uses relative coordinates"""
     x = int(xmove.get())#make this more elegant for restriction to ints
     y = int(ymove.get())
-    goTo(x,y,abs_pos)
+    goTo(x,y,relative_pos)
 
 # Yeah this is anoying and no need for a diagonal plot at least as of now
 # leaving for later or never
@@ -192,7 +192,7 @@ def scan(relative_pos):
     collect(relative_pos, Scan_Data)
     plot_Bfield(Scan_Data)
     saveData(Scan_Data)
-    goTo(xfinal,yfinal,relative_pos)
+    goTo(xinitial,yinitial,relative_pos)
 
 def GPIB_Point(relative_pos):
     """records field at a single point from GPIB and returns it in the form
@@ -267,15 +267,36 @@ def plot_Bfield(data):
     xBz.plot(data[0],data[4],  color='tab:red')
 
     #add features
-    xBxBy.set_xlabel('mm displacement')
+    xBxBy.set_xlabel('mm displacement z')
     xBxBy.set_ylabel('B field (Gauss)')
     xBxBy.legend(('x direction','y direction'))
 
-    xBz.set_xlabel('mm displacement')
+    xBz.set_xlabel('mm displacement z')
     xBz.set_ylabel('B field (Gauss)')
     xBz.legend(('z direction'))
 
     fig.tight_layout(pad=3.0)
+
+
+    fig2, (yBxBy,yBz) = plt.subplots(nrows=1, ncols=2, sharex=True,figsize=(12, 6))
+
+    yBxBy.plot(data[1],data[2], color='tab:blue')
+    yBxBy.plot(data[1],data[3],  color='tab:orange')
+    yBz.plot(data[2],data[4],  color='tab:red')
+
+    #add features
+    yBxBy.set_xlabel('mm displacement y')
+    yBxBy.set_ylabel('B field (Gauss)')
+    yBxBy.legend(('x direction','y direction'))
+
+    yBz.set_xlabel('mm displacement y')
+    yBz.set_ylabel('B field (Gauss)')
+    yBz.legend(('z direction'))
+
+    fig.tight_layout(pad=3.0)
+
+
+
 
     #save figure
     plt.savefig('Bfield.png')
