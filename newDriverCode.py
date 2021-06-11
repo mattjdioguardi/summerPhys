@@ -128,7 +128,7 @@ def relative_home(relative_pos):
 def goTo(x,y,pos):
     """given an x(z) and y position the stepers move to those coordinates in
     terms of the given position relative or absolute can be passed"""
-    
+
     if(x<pos[0]):
         move('b',pos[0]-x)
     else:
@@ -281,7 +281,7 @@ def plot_Bfield(data):
 
     yBxBy.plot(data[1],data[2], color='tab:blue')
     yBxBy.plot(data[1],data[3],  color='tab:orange')
-    yBz.plot(data[2],data[4],  color='tab:red')
+    yBz.plot(data[1],data[4],  color='tab:red')
 
     #add features
     yBxBy.set_xlabel('mm displacement y')
