@@ -29,7 +29,7 @@ d = u6.U6()
 d.getCalibrationData()
 print("Configuring U6 stream")
 d.streamConfig(NumChannels=3, ChannelNumbers=[0, 1, 2], ChannelOptions=[0, 0, 0],
-                SettlingFactor=1, ResolutionIndex=1, ScanFrequency=1000)
+                SettlingFactor=1, ResolutionIndex=1, ScanFrequency=10000)
 
 ################################serial setup###################################
 ser = serial.Serial('/dev/cu.usbmodem0E22D9A1')  # open serial port
@@ -167,8 +167,8 @@ def scan(relative_pos):
         angle = abs(math.atan(m))
         xstep = round(math.cos(angle)*step)
         ystep = round(math.sin(angle)*step)
-        xstep +=1 if xstep == 0 else xstep
-        ystep +=1 if ystep == 0 else ystep
+        xstep =1 if xstep == 0 else xstep
+        ystep =1 if ystep == 0 else ystep
     else:
         xstep = 0
         ystep = step
