@@ -25,6 +25,8 @@ inst.write("SENS:VOLT:NPLC 5")		#integration time in PLCs, 1 PLC= 1power line cy
 inst.write("SENS:VOLT:DC:AVER:COUN 6")
 
 # #############################u6 setup##########################################
+
+DESIRED_SAMPLES = 10000
 d = u6.U6()
 d.getCalibrationData()
 print("Configuring U6 stream")
@@ -205,13 +207,21 @@ def GPIB_Point(relative_pos):
     return Bfield
 
 def U6_point(relative_pos):
+    samples_collected = 0
+    packets_collected = 0
+    Bfield = [relative_pos[0], relative_pos[1], 0, 0, 0]
     d.streamStart()
-    Bcur = next(d.streamData())
+    while(samples_collected < 3*DESIRED_SAMPLES):
+        Bcur = next(d.streamData())
+        Bfield[2] += sum(Bcur["AIN0"])/len(Bcur["AIN0"])
+        Bfield[3] += sum(Bcur["AIN1"])/len(Bcur["AIN1"])
+        Bfield[4] += sum(Bcur["AIN2"])/len(Bcur["AIN2"])
+        samples_collected += len(Bcur["AIN0"]) + len(Bcur["AIN1"])+ len(Bcur["AIN2"])
+        packets_collected += 1
+    for i in range(2,5):
+        Bfield[i] /= packets_collected
+    print(samples_collected)
     d.streamStop()
-    Bfield = [relative_pos[0], relative_pos[1],
-    (sum(Bcur["AIN0"])/len(Bcur["AIN0"]))*Volt_to_gauss,
-    (sum(Bcur["AIN1"])/len(Bcur["AIN1"]))*Volt_to_gauss,
-    (sum(Bcur["AIN2"])/len(Bcur["AIN2"]))*Volt_to_gauss]
     return Bfield
 
 def collect(relative_pos,data):
