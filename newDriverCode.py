@@ -264,6 +264,53 @@ def Field_Window(relative_pos):
     tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[3])).grid(column=1,row=2)
     tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[4])).grid(column=1,row=3)
 
+def Two_D_map(relative_pos):
+        step = int(step_size.get())
+        xinitial = int(xstart.get())
+        yinitial = int(ystart.get())
+        xfinal = int(xend.get())
+        yfinal = int(yend.get())
+
+        xdir = 'f' if xfinal > xinitial else 'b'
+        ydir = 'u' if yfinal > yinitial else 'd'
+
+        goTo(xinitial,yinitial,relative_pos)
+        Scan_Data = [[],[],[],[],[]]
+        ylen = 0
+        while(round(relative_pos[1]) != yfinal):
+            ylen += 1
+            goTo(xinitial,relative_pos[1])
+            if(abs(relative_pos[1] - yfinal) >= step):
+                move(ydir,step)
+            elif(relative_pos[1] != yfinal):
+                move(ydir,abs(relative_pos[1] - yfinal))
+            while (round(relative_pos[0]) != xfinal):
+                collect(relative_pos, Scan_Data)
+                if(abs(relative_pos[0] - xfinal) >= step):
+                    move(xdir,step)
+                elif(relative_pos[0] != xfinal):
+                    move(xdir,abs(relative_pos[0] - xfinal))
+            collect(relative_pos, Scan_Data)
+
+        xfield = np.array(Scan_Data[2]).reshape(ylen, -1)
+        yfeild = np.array(Scan_Data[3]).reshape(ylen, -1)
+        zField = np.array(Scan_Data[4]).reshape(ylen, -1)
+
+        fig1,ax=plt.subplots(1,1)
+        fig2,ay=plt.subplots(1,1)
+        fig3,az=plt.subplots(1,1)
+
+        ax.contourf(xfield)
+        ax.set_title("x")
+        ay.contourf(yfield)
+        ay.set_title("y")
+        az.contourf(zfield)
+        az.set_title("z")
+
+        plt.show
+
+        saveData(Scan_Data)
+        goTo(xinitial,yinitial,relative_pos)
 
 
 def plot_Bfield(data):
@@ -361,6 +408,7 @@ ymove = tk.Entry(win,width=3)
 ymove.grid(column=13,row=2)
 tk.Button(win, text="GO!",command=partial(goToClick,relative_pos)).grid(column=14, row=2)
 
+
 tk.Label(win, text="scan from:").grid(column=10,row=4)
 tk.Label(win, text="z:").grid(column=10,row=5)
 xstart = tk.Entry(win,width=3)
@@ -381,6 +429,8 @@ tk.Label(win, text="y:").grid(column=12,row=7)
 yend = tk.Entry(win,width=3)
 yend.grid(column=13,row=7)
 tk.Button(win, text="GO!",command=partial(scan,relative_pos)).grid(column=14, row=7)
+tk.Button(win, text="2D GO!",command=partial(Two_D_map,relative_pos)).grid(column=15, row=7)
+
 
 tk.Button(win, text="Get current field",command= partial(Field_Window,relative_pos)).grid(column=10,row=9)
 
