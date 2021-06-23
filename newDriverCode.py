@@ -9,7 +9,7 @@ from functools import partial
 import matplotlib.pyplot as plt
 import math
 import pandas as pd
-
+import numpy as np
 
 
 ###################NEW 2021##########################
@@ -271,8 +271,8 @@ def Two_D_map(relative_pos):
         xfinal = int(xend.get())
         yfinal = int(yend.get())
 
-        xfinal += 1 if xfinal > xinitial else xfinal -= 1
-        yfinal += 1 if yfinal > yinitial else yfinal -= 1
+        xfinal += 1 if xfinal > xinitial else -1
+        yfinal += 1 if yfinal > yinitial else -1
 
 
         xdir = 'f' if xfinal > xinitial else 'b'
@@ -281,7 +281,7 @@ def Two_D_map(relative_pos):
         goTo(xinitial,yinitial,relative_pos)
         Scan_Data = [[],[],[],[],[]]
         while(round(relative_pos[1]) != yfinal):
-            goTo(xinitial,relative_pos[1])
+            goTo(xinitial,relative_pos[1], relative_pos)
             while (round(relative_pos[0]) != xfinal):
                 collect(relative_pos, Scan_Data)
                 if(abs(relative_pos[0] - xfinal) >= step):
@@ -299,8 +299,8 @@ def Two_D_map(relative_pos):
         zmatrix, ymatrix = np.meshgrid(np.unique(Scan_Data[0]),
                                        np.unique(Scan_Data[1]), indexing='ij')
         xfield = np.array(Scan_Data[2]).reshape(zlen, ylen)
-        yfeild = np.array(Scan_Data[3]).reshape(zlen, ylen)
-        zField = np.array(Scan_Data[4]).reshape(zlen, ylen)
+        yfield = np.array(Scan_Data[3]).reshape(zlen, ylen)
+        zfield = np.array(Scan_Data[4]).reshape(zlen, ylen)
 
         fig1,ax=plt.subplots(1,1)
         fig2,ay=plt.subplots(1,1)
