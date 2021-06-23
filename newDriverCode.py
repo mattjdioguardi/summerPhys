@@ -278,10 +278,6 @@ def Two_D_map(relative_pos):
         Scan_Data = [[],[],[],[],[]]
         while(round(relative_pos[1]) != yfinal):
             goTo(xinitial,relative_pos[1])
-            if(abs(relative_pos[1] - yfinal) >= step):
-                move(ydir,step)
-            elif(relative_pos[1] != yfinal):
-                move(ydir,abs(relative_pos[1] - yfinal))
             while (round(relative_pos[0]) != xfinal):
                 collect(relative_pos, Scan_Data)
                 if(abs(relative_pos[0] - xfinal) >= step):
@@ -289,12 +285,16 @@ def Two_D_map(relative_pos):
                 elif(relative_pos[0] != xfinal):
                     move(xdir,abs(relative_pos[0] - xfinal))
             collect(relative_pos, Scan_Data)
+            if(abs(relative_pos[1] - yfinal) >= step):
+                move(ydir,step)
+            elif(relative_pos[1] != yfinal):
+                move(ydir,abs(relative_pos[1] - yfinal))
 
         zlen = (len(np.unique(Scan_Data[0])))
         ylen = (len(np.unique(Scan_Data[1])))
 
         zmatrix, ymatrix = np.meshgrid(np.unique(Scan_Data[0]),
-                                       np.unique(Scan_Data[1]), indexing='ij') 
+                                       np.unique(Scan_Data[1]), indexing='ij')
         xfield = np.array(Scan_Data[2]).reshape(zlen, ylen)
         yfeild = np.array(Scan_Data[3]).reshape(zlen, ylen)
         zField = np.array(Scan_Data[4]).reshape(zlen, ylen)
@@ -303,11 +303,11 @@ def Two_D_map(relative_pos):
         fig2,ay=plt.subplots(1,1)
         fig3,az=plt.subplots(1,1)
 
-        ax.contourf(zmatrix, ymatrix, xfield)
+        ax.contourf(zmatrix, ymatrix, xfield, levels = 100)
         ax.set_title("x")
-        ay.contourf(zmatrix, ymatrix, yfield)
+        ay.contourf(zmatrix, ymatrix, yfield, levels = 100)
         ay.set_title("y")
-        az.contourf(zmatrix, ymatrix, zfield)
+        az.contourf(zmatrix, ymatrix, zfield, levels = 100)
         az.set_title("z")
 
         plt.show
