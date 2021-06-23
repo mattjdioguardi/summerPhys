@@ -271,6 +271,10 @@ def Two_D_map(relative_pos):
         xfinal = int(xend.get())
         yfinal = int(yend.get())
 
+        xfinal += 1 if xfinal > xinitial else xfinal -= 1
+        yfinal += 1 if yfinal > yinitial else yfinal -= 1
+
+
         xdir = 'f' if xfinal > xinitial else 'b'
         ydir = 'u' if yfinal > yinitial else 'd'
 
@@ -284,7 +288,6 @@ def Two_D_map(relative_pos):
                     move(xdir,step)
                 elif(relative_pos[0] != xfinal):
                     move(xdir,abs(relative_pos[0] - xfinal))
-            collect(relative_pos, Scan_Data)
             if(abs(relative_pos[1] - yfinal) >= step):
                 move(ydir,step)
             elif(relative_pos[1] != yfinal):
@@ -310,7 +313,7 @@ def Two_D_map(relative_pos):
         az.contourf(zmatrix, ymatrix, zfield, levels = 100)
         az.set_title("z")
 
-        plt.show
+        plt.show()
 
         saveData(Scan_Data)
         goTo(xinitial,yinitial,relative_pos)
