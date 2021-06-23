@@ -192,7 +192,9 @@ def scan(relative_pos):
             move(ydir,abs(relative_pos[1] - yfinal))
     collect(relative_pos, Scan_Data)
     plot_Bfield(Scan_Data)
-    saveData(Scan_Data)
+
+    if(save):
+        saveData(Scan_Data)
     goTo(xinitial,yinitial,relative_pos)
 
 def GPIB_Point(relative_pos):
@@ -261,8 +263,8 @@ def Field_Window(relative_pos):
         Cur_Field = U6_point(relative_pos)
 
     tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[2])).grid(column=1,row=1)
-    tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[3])).grid(column=1,row=2)
-    tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[4])).grid(column=1,row=3)
+    tk.Label(Field, text = "By:%.7g" %(Cur_Field[3])).grid(column=1,row=2)
+    tk.Label(Field, text = "Bz:%.7g" %(Cur_Field[4])).grid(column=1,row=3)
 
 def Two_D_map(relative_pos):
         step = int(step_size.get())
@@ -315,7 +317,8 @@ def Two_D_map(relative_pos):
 
         plt.show()
 
-        saveData(Scan_Data)
+        if (save):
+            saveData(Scan_Data)
         goTo(xinitial,yinitial,relative_pos)
 
 
@@ -436,6 +439,8 @@ yend = tk.Entry(win,width=3)
 yend.grid(column=13,row=7)
 tk.Button(win, text="GO!",command=partial(scan,relative_pos)).grid(column=14, row=7)
 tk.Button(win, text="2D GO!",command=partial(Two_D_map,relative_pos)).grid(column=15, row=7)
+save = tk.IntVar()
+tk.Checkbutton(win, text="Save Data?", variable=save).grid(column = 16, row=7)
 
 
 tk.Button(win, text="Get current field",command= partial(Field_Window,relative_pos)).grid(column=10,row=9)
