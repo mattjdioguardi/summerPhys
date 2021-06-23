@@ -299,7 +299,7 @@ def Two_D_map(relative_pos):
         ylen = (len(np.unique(Scan_Data[1])))
 
         zmatrix, ymatrix = np.meshgrid(np.unique(Scan_Data[0]),
-                                       np.unique(Scan_Data[1]), indexing='ij')
+                                       np.unique(Scan_Data[1]))
         xfield = np.array(Scan_Data[2]).reshape(zlen, ylen)
         yfield = np.array(Scan_Data[3]).reshape(zlen, ylen)
         zfield = np.array(Scan_Data[4]).reshape(zlen, ylen)
@@ -308,11 +308,14 @@ def Two_D_map(relative_pos):
         fig2,ay=plt.subplots(1,1)
         fig3,az=plt.subplots(1,1)
 
-        ax.contourf(zmatrix, ymatrix, xfield, levels = 100)
+        cx = ax.contourf(zmatrix, ymatrix, xfield, levels = 100)
+        fig1.colorbar(cx)
         ax.set_title("x")
-        ay.contourf(zmatrix, ymatrix, yfield, levels = 100)
+        cy = ay.contourf(zmatrix, ymatrix, yfield, levels = 100)
+        fig2.colorbar(cy)
         ay.set_title("y")
-        az.contourf(zmatrix, ymatrix, zfield, levels = 100)
+        cz = az.contourf(zmatrix, ymatrix, zfield, levels = 100)
+        fig3.colorbar(cz)
         az.set_title("z")
 
         plt.show()
