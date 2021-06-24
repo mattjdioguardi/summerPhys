@@ -300,9 +300,9 @@ def Two_D_map(relative_pos):
 
         zmatrix, ymatrix = np.meshgrid(np.unique(Scan_Data[0]),
                                        np.unique(Scan_Data[1]))
-        xfield = np.array(Scan_Data[2]).reshape(zlen, ylen)
-        yfield = np.array(Scan_Data[3]).reshape(zlen, ylen)
-        zfield = np.array(Scan_Data[4]).reshape(zlen, ylen)
+        xfield = np.array(Scan_Data[2]).reshape(ylen, xlen)
+        yfield = np.array(Scan_Data[3]).reshape(ylen, xlen)
+        zfield = np.array(Scan_Data[4]).reshape(ylen, xlen)
 
         fig1,ax=plt.subplots(1,1)
         fig2,ay=plt.subplots(1,1)
