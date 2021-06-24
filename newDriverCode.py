@@ -14,25 +14,6 @@ import numpy as np
 
 ###################NEW 2021##########################
 
-##############################Keithley Set Up#####################################
-rm = pyvisa.ResourceManager()
-rm.list_resources()
-inst = rm.open_resource('GPIB0::16::INSTR')
-print(inst.query("*IDN?"))
-inst.write("SENS:FUNC 'VOLT:DC' ")
-inst.write("SENS:VOLT:DC:RANG:AUTO ON ")
-inst.write("SENS:VOLT:NPLC 5")		#integration time in PLCs, 1 PLC= 1power line cycle =1/60 sec
-inst.write("SENS:VOLT:DC:AVER:COUN 6")
-
-# #############################u6 setup##########################################
-
-DESIRED_SAMPLES = 10000
-d = u6.U6()
-d.getCalibrationData()
-print("Configuring U6 stream")
-d.streamConfig(NumChannels=3, ChannelNumbers=[0, 1, 2], ChannelOptions=[0, 0, 0],
-                SettlingFactor=1, ResolutionIndex=1, ScanFrequency=10000)
-
 ################################serial setup###################################
 ser = serial.Serial('/dev/cu.usbmodem0E22D9A1')  # open serial port
 
@@ -127,32 +108,33 @@ def relative_home(relative_pos):
     else:
         move('u',-relative_pos[1])
 
-def goTo(x,y,pos):
+def goTo(x,y,relative_pos,abs_pos):
     """given an x(z) and y position the stepers move to those coordinates in
     terms of the given position relative or absolute can be passed"""
 
-    if(x<pos[0]):
-        move('b',pos[0]-x)
-    else:
-        move('f',x-pos[0])
-    if(y<pos[1]):
-        move('d',pos[1]-y)
-    else:
-        move('u',y-pos[1])
+    if(x<relative_pos[0] and abs_pos[0] - abs(relative_pos[0]-x) >= 0):
+        move('b',abs(relative_pos[0]-x))
+    elif(x>relative_pos[0] and abs_pos[0] + abs(relative_pos[0]-x) <= xlim):
+        move('f',abs(relative_pos[0]-x))
+    if(y<relative_pos[1] and abs_pos[1] - abs(relative_pos[0]-x) >= 0):
+        move('d',abs(relative_pos[1]-y))
+    elif(y>relative_pos[1] and abs_pos[1] + abs(relative_pos[0]-x) <= ylim):
+        move('u',abs(relative_pos[1]-y))
+
 
 #gross way to do this but tkninter is annoying
-def goToClick(relative_pos):
+def goToClick(relative_pos,abs_pos):
     """takes the values in the goto bozes on the interface and sends those to
     goTo. This uses relative coordinates"""
     x = int(xmove.get())#make this more elegant for restriction to ints
     y = int(ymove.get())
-    goTo(x,y,relative_pos)
+    goTo(x,y,relative_pos,abs_pos)
 
 # Yeah this is anoying and no need for a diagonal plot at least as of now
 # leaving for later or never
 #should probably add a get direction fucntion so goto and this are cleaner
 #need to add bounds so arm doestn crash
-def scan(relative_pos):
+def scan(relative_pos,abs_pos):
     """Pulls starting coordinates, ending coordinates, and a step size from the
     window and then moves in a very rough line between the two points. These
     coordinates are interms of the realative zero postion. Collects
@@ -177,7 +159,7 @@ def scan(relative_pos):
     xdir = 'f' if xfinal > xinitial else 'b'
     ydir = 'u' if yfinal > yinitial else 'd'
 
-    goTo(xinitial,yinitial,relative_pos)
+    goTo(xinitial,yinitial,relative_pos,abs_pos)
     Scan_Data = [[],[],[],[],[]]
 
     while (round(relative_pos[0]) != xfinal or round(relative_pos[1]) != yfinal):
@@ -195,9 +177,9 @@ def scan(relative_pos):
 
     if(save):
         saveData(Scan_Data)
-    goTo(xinitial,yinitial,relative_pos)
+    goTo(xinitial,yinitial,relative_pos,abs_pos)
 
-def GPIB_Point(relative_pos):
+def Keithly_Point(relative_pos):
     """records field at a single point from GPIB and returns it in the form
     [z coordonate, y coordonate, Bx, By, Bz]"""
     Bfield = [0,0,0]
@@ -207,6 +189,20 @@ def GPIB_Point(relative_pos):
         Bfield[2] += float(inst.query("MEAS:VOLT:DC? (@203)")[:15])
     Bfield = [relative_pos[0], relative_pos[1]] + [x/5 for x in Bfield]
     return Bfield
+
+
+def Sypris_Point(relative_pos):
+    """records field at a single point from GPIB and returns it in the form
+    [z coordonate, y coordonate, Bx, By, Bz]"""
+    Bfield = [0,0,0]
+    for i in range(5):
+        Bfield[0] += float(inst.query("MEAS1:FLUX?")[:-2])
+        Bfield[1] += float(inst.query("MEAS1:FLUX?")[:-2])
+        Bfield[2] += float(inst.query("MEAS1:FLUX?")[:-2])
+    Bfield = [relative_pos[0], relative_pos[1]] + [x/5 for x in Bfield]
+    return Bfield
+
+
 
 def U6_point(relative_pos):
     samples_collected = 0
@@ -222,19 +218,54 @@ def U6_point(relative_pos):
         packets_collected += 1
     for i in range(2,5):
         Bfield[i] /= packets_collected
-    print(samples_collected)
     d.streamStop()
     return Bfield
+
+def initialize_sensors():
+    """Initiliazes the selected sensor"""
+
+    if(mode.get() == "Keithley"):
+        ##############################Keithley Set Up#####################################
+        rm = pyvisa.ResourceManager()
+        rm.list_resources()
+        inst = rm.open_resource('GPIB0::16::INSTR')
+        print(inst.query("*IDN?"))
+        inst.write("SENS:FUNC 'VOLT:DC' ")
+        inst.write("SENS:VOLT:DC:RANG:AUTO ON ")
+        inst.write("SENS:VOLT:NPLC 5")		#integration time in PLCs, 1 PLC= 1power line cycle =1/60 sec
+        inst.write("SENS:VOLT:DC:AVER:COUN 6")
+
+    elif(mode.get() == "labjack"):
+        # #############################u6 setup##########################################
+        DESIRED_SAMPLES = 10000
+        d = u6.U6()
+        d.getCalibrationData()
+        print("Configuring U6 stream")
+        d.streamConfig(NumChannels=3, ChannelNumbers=[0, 1, 2], ChannelOptions=[0, 0, 0],
+                        SettlingFactor=1, ResolutionIndex=1, ScanFrequency=10000)
+
+    elif(mode.get() == "Sypris"):
+        ###################sypris setup#####################
+        rm = pyvisa.ResourceManager()
+        rm.list_resources()
+        inst = rm.open_resource('GPIB0::01::INSTR')
+        print(inst.query("*IDN?"))
+        inst.write("SENS#:FLUX:DC")
+        inst.write("SENS#:FLUX:RANG:AUT ON")
+        inst.write("CALC#:AVER:COUN 6")
+
 
 def collect(relative_pos,data):
     """Records data from GPIB  and appends them to a passed list of form
     [[z coordonates], [y coordonates], [Bx], [By], [Bz]] where each entry of the
     same index is one data point"""
 
-    if(mode.get() == "GPIB"):
-        Bfield = GPIB_Point(relative_pos)
+    if(mode.get() == "Keithley"):
+        Bfield = Keithley_Point(relative_pos)
     elif(mode.get() == "labjack"):
         Bfield = U6_point(relative_pos)
+    elif(mode.get() == "Sypris"):
+        Bfield = Sypris_Point_point(relative_pos)
     for x in range(len(Bfield)):
         data[x].append(Bfield[x])
 
@@ -266,7 +297,7 @@ def Field_Window(relative_pos):
     tk.Label(Field, text = "By:%.7g" %(Cur_Field[3])).grid(column=1,row=2)
     tk.Label(Field, text = "Bz:%.7g" %(Cur_Field[4])).grid(column=1,row=3)
 
-def Two_D_map(relative_pos):
+def Two_D_map(relative_pos,abs_pos):
         step = int(step_size.get())
         xinitial = int(xstart.get())
         yinitial = int(ystart.get())
@@ -280,10 +311,10 @@ def Two_D_map(relative_pos):
         xdir = 'f' if xfinal > xinitial else 'b'
         ydir = 'u' if yfinal > yinitial else 'd'
 
-        goTo(xinitial,yinitial,relative_pos)
+        goTo(xinitial,yinitial,relative_pos,abs_pos)
         Scan_Data = [[],[],[],[],[]]
         while(round(relative_pos[1]) != yfinal):
-            goTo(xinitial,relative_pos[1], relative_pos)
+            goTo(xinitial,relative_pos[1], relative_pos,abs_pos)
             while (round(relative_pos[0]) != xfinal):
                 collect(relative_pos, Scan_Data)
                 if(abs(relative_pos[0] - xfinal) >= step):
@@ -298,6 +329,13 @@ def Two_D_map(relative_pos):
         zlen = (len(np.unique(Scan_Data[0])))
         ylen = (len(np.unique(Scan_Data[1])))
 
+        #makes zero field always be middle of the cmap
+        xmax = max(Scan_Data[2]) if max(Scan_Data[2]) > abs(min(Scan_Data[2])) else abs(min(Scan_Data[2]))
+        ymax = max(Scan_Data[3]) if max(Scan_Data[3]) > abs(min(Scan_Data[3])) else abs(min(Scan_Data[3]))
+        zmax = max(Scan_Data[4]) if max(Scan_Data[4]) > abs(min(Scan_Data[4])) else abs(min(Scan_Data[4]))
+
+
+
         zmatrix, ymatrix = np.meshgrid(np.unique(Scan_Data[0]),
                                        np.unique(Scan_Data[1]))
         xfield = np.array(Scan_Data[2]).reshape(ylen, xlen)
@@ -308,13 +346,13 @@ def Two_D_map(relative_pos):
         fig2,ay=plt.subplots(1,1)
         fig3,az=plt.subplots(1,1)
 
-        cx = ax.contourf(zmatrix, ymatrix, xfield, levels = 100)
+        cx = ax.contourf(zmatrix, ymatrix, xfield, levels = 100,cmap = "seismic", vmin = -xmax, vmax = xmax)
         fig1.colorbar(cx)
         ax.set_title("x")
-        cy = ay.contourf(zmatrix, ymatrix, yfield, levels = 100)
+        cy = ay.contourf(zmatrix, ymatrix, yfield, levels = 100,cmap = "seismic", vmin = -ymax, vmax = ymax)
         fig2.colorbar(cy)
         ay.set_title("y")
-        cz = az.contourf(zmatrix, ymatrix, zfield, levels = 100)
+        cz = az.contourf(zmatrix, ymatrix, zfield, levels = 100,cmap = "seismic", vmin = -zmax, vmax = zmax)
         fig3.colorbar(cz)
         az.set_title("z")
 
@@ -322,7 +360,7 @@ def Two_D_map(relative_pos):
 
         if (save):
             saveData(Scan_Data)
-        goTo(xinitial,yinitial,relative_pos)
+        goTo(xinitial,yinitial,relative_pos,abs_pos)
 
 
 def plot_Bfield(data):
@@ -418,7 +456,7 @@ xmove.grid(column=11,row=2)
 tk.Label(win, text="y:").grid(column=12,row=2)
 ymove = tk.Entry(win,width=3)
 ymove.grid(column=13,row=2)
-tk.Button(win, text="GO!",command=partial(goToClick,relative_pos)).grid(column=14, row=2)
+tk.Button(win, text="GO!",command=partial(goToClick,relative_pos,abs_pos)).grid(column=14, row=2)
 
 
 tk.Label(win, text="scan from:").grid(column=10,row=4)
@@ -440,8 +478,8 @@ xend.grid(column=11,row=7)
 tk.Label(win, text="y:").grid(column=12,row=7)
 yend = tk.Entry(win,width=3)
 yend.grid(column=13,row=7)
-tk.Button(win, text="GO!",command=partial(scan,relative_pos)).grid(column=14, row=7)
-tk.Button(win, text="2D GO!",command=partial(Two_D_map,relative_pos)).grid(column=15, row=7)
+tk.Button(win, text="GO!",command=partial(scan,relative_pos,abs_pos)).grid(column=14, row=7)
+tk.Button(win, text="2D GO!",command=partial(Two_D_map,relative_pos,abs_pos)).grid(column=15, row=7)
 save = tk.IntVar()
 tk.Checkbutton(win, text="Save Data?", variable=save).grid(column = 16, row=7)
 
@@ -460,42 +498,12 @@ def advancedNewWindow():
 tk.Button(win, text="Advanced Settings",command=advancedNewWindow).grid(column=1, row=20)
 
 mode = tk.StringVar(win)
-modes = {"labjack", "GPIB", "labjack + GBIB"}
+modes = {"labjack", "Keithley", "Sypris"}
 mode.set("labjack")
 mode_select = tk.OptionMenu(win,mode,*modes)
 mode_select.grid(column=1,row=7)
+tk.Button(win, text="Initiliaze",command=initialize_sensors).grid(column=2, row=7)
 
-
-
-# def matthew_collect_data(data):
-#     missed = 0
-#     dataCount = 0
-#     packetCount = 0
-#     while(True):
-#         with mutex:
-#             if(collected):
-#                 print("missed: %s, dataount: %s, packet count: %s" %
-#                       (missed, dataCount, packetCount))
-#                 return
-#                 #reaturn data
-#         for r in d.streamData():
-#             data.append(sum(r["AIN0"])/len(r["AIN0"]),
-#                         sum(r["AIN1"])/len(r["AIN1"]),
-#                         sum(r["AIN2"])/len(r["AIN2"]))
-
-# def matthew_test():
-
-#     #go_to_abs_zero()
-#     mydata = []
-#     p = Process(target = matthew_collect_data, args = (mydata,))
-#     p.start()
-#     time.sleep(4.0)
-#     with mutex:
-#         collected = True
-#     #go_to_abs_zero()
-#     #move_to_start('x', 50)
-#     p.join()
-#     print(mydata)
 
 if __name__ == '__main__':
 
@@ -505,7 +513,7 @@ if __name__ == '__main__':
     limit_u = 10000
     limit_d = 10000
     xlim = 440 #limit in z direction is 440 mm
-    ylim = 185 #limit in y direction is 185 mm
+    ylim = -185 #limit in y direction is 185 mm
 
     win.mainloop()
 
