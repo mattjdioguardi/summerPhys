@@ -15,7 +15,7 @@ import numpy as np
 ###################NEW 2021##########################
 
 ################################serial setup###################################
-ser = serial.Serial('/dev/cu.usbmodem0E22D9A1')  # open serial port
+ser = serial.Serial('/dev/cu.usbmodem0E22D9B1')  # open serial port
 
 ########globals :(((##################
 abs_pos = [0,0]
@@ -204,7 +204,7 @@ def Sypris_Point(relative_pos):
 
 
 
-def U6_point(relative_pos):
+def U6_Point(relative_pos):
     samples_collected = 0
     packets_collected = 0
     Bfield = [relative_pos[0], relative_pos[1], 0, 0, 0]
@@ -237,7 +237,6 @@ def initialize_sensors():
 
     elif(mode.get() == "labjack"):
         # #############################u6 setup##########################################
-        DESIRED_SAMPLES = 10000
         d = u6.U6()
         d.getCalibrationData()
         print("Configuring U6 stream")
@@ -261,11 +260,11 @@ def collect(relative_pos,data):
     same index is one data point"""
 
     if(mode.get() == "Keithley"):
-        Bfield = Keithley_Point(relative_pos)
+        Bfield = Keithly_Point(relative_pos)
     elif(mode.get() == "labjack"):
-        Bfield = U6_point(relative_pos)
+        Bfield = U6_Point(relative_pos)
     elif(mode.get() == "Sypris"):
-        Bfield = Sypris_Point_point(relative_pos)
+        Bfield = Sypris_Point(relative_pos)
     for x in range(len(Bfield)):
         data[x].append(Bfield[x])
 
@@ -288,10 +287,12 @@ def Field_Window(relative_pos):
     Field = tk.Toplevel(win)
     Field.geometry("300x300")
 
-    if(mode.get() == "GPIB"):
-        Cur_Field = GPIB_Point(relative_pos)
+    if(mode.get() == "Keithly"):
+        Cur_Field = Keithly_Point(relative_pos)
+    if(mode.get() == "Sypris"):
+        Cur_Field = Sypris_Point(relative_pos)
     elif(mode.get() == "labjack"):
-        Cur_Field = U6_point(relative_pos)
+        Cur_Field = U6_Point(relative_pos)
 
     tk.Label(Field, text = "Bx:%.7g" %(Cur_Field[2])).grid(column=1,row=1)
     tk.Label(Field, text = "By:%.7g" %(Cur_Field[3])).grid(column=1,row=2)
@@ -338,9 +339,9 @@ def Two_D_map(relative_pos,abs_pos):
 
         zmatrix, ymatrix = np.meshgrid(np.unique(Scan_Data[0]),
                                        np.unique(Scan_Data[1]))
-        xfield = np.array(Scan_Data[2]).reshape(ylen, xlen)
-        yfield = np.array(Scan_Data[3]).reshape(ylen, xlen)
-        zfield = np.array(Scan_Data[4]).reshape(ylen, xlen)
+        xfield = np.array(Scan_Data[2]).reshape(ylen, zlen)
+        yfield = np.array(Scan_Data[3]).reshape(ylen, zlen)
+        zfield = np.array(Scan_Data[4]).reshape(ylen, zlen)
 
         fig1,ax=plt.subplots(1,1)
         fig2,ay=plt.subplots(1,1)
@@ -514,6 +515,7 @@ if __name__ == '__main__':
     limit_d = 10000
     xlim = 440 #limit in z direction is 440 mm
     ylim = -185 #limit in y direction is 185 mm
+    DESIRED_SAMPLES = 10000
 
     win.mainloop()
 
