@@ -24,7 +24,8 @@ relative_offset = [0,0]
 abs_steps = [0,0]
 labjack_Voltage = [0,10]
 Volt_to_gauss = 1
-
+d = None
+inst = None
 #clean up all the single lines of assignment for the lists its messy
 def set_absolute_zero(abs_pos, abs_steps):
     """resets the absolute zero position to the postion that the steppers are
@@ -182,6 +183,7 @@ def scan(relative_pos,abs_pos):
 def Keithly_Point(relative_pos):
     """records field at a single point from GPIB and returns it in the form
     [z coordonate, y coordonate, Bx, By, Bz]"""
+    global inst
     Bfield = [0,0,0]
     for i in range(5):
         Bfield[0] += float(inst.query("MEAS:VOLT:DC? (@204)")[:15])
@@ -194,6 +196,7 @@ def Keithly_Point(relative_pos):
 def Sypris_Point(relative_pos):
     """records field at a single point from GPIB and returns it in the form
     [z coordonate, y coordonate, Bx, By, Bz]"""
+    global inst
     Bfield = [0,0,0]
     for i in range(5):
         Bfield[0] += float(inst.query("MEAS1:FLUX?")[:-2])
@@ -205,6 +208,7 @@ def Sypris_Point(relative_pos):
 
 
 def U6_Point(relative_pos):
+    global d
     samples_collected = 0
     packets_collected = 0
     Bfield = [relative_pos[0], relative_pos[1], 0, 0, 0]
@@ -224,6 +228,8 @@ def U6_Point(relative_pos):
 def initialize_sensors():
     """Initiliazes the selected sensor"""
 
+    global inst
+    global d
     if(mode.get() == "Keithley"):
         ##############################Keithley Set Up#####################################
         rm = pyvisa.ResourceManager()
