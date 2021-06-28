@@ -176,7 +176,7 @@ def scan(relative_pos,abs_pos):
     collect(relative_pos, Scan_Data)
     plot_Bfield(Scan_Data)
 
-    if(save):
+    if(save.get()):
         saveData(Scan_Data)
     goTo(xinitial,yinitial,relative_pos,abs_pos)
 
@@ -208,7 +208,7 @@ def Sypris_Point(relative_pos):
 
 
 def U6_Point(relative_pos):
-    global d
+
     samples_collected = 0
     packets_collected = 0
     Bfield = [relative_pos[0], relative_pos[1], 0, 0, 0]
@@ -365,7 +365,7 @@ def Two_D_map(relative_pos,abs_pos):
 
         plt.show()
 
-        if (save):
+        if (save.get()):
             saveData(Scan_Data)
         goTo(xinitial,yinitial,relative_pos,abs_pos)
 
