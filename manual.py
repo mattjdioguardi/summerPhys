@@ -49,6 +49,7 @@ def plot_scan():
     plt.show()
 
 def reset_data():
+    global data
     data = [[],[],[]]
 
 def save_scan():
@@ -63,7 +64,7 @@ def save_scan():
 
 win = tk.Tk()
 win.title("3D Mapper")
-win.geometry("120x160")
+win.geometry("200x70")
 
 
 tk.Button(win, text="scan point",command=scan).grid(column=1, row=1)

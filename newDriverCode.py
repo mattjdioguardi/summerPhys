@@ -15,7 +15,7 @@ import numpy as np
 ###################NEW 2021##########################
 
 ################################serial setup###################################
-ser = serial.Serial('/dev/cu.usbmodem0E22D9B1')  # open serial port
+ser = serial.Serial('/dev/cu.usbmodem0E22D9A1',baudrate=115200)  # open serial port
 
 ########globals :(((##################
 abs_pos = [0,0]
@@ -74,6 +74,7 @@ def move(direc, step):
 
     ser.write((str.encode(machine_step)))
     ser.write((str.encode(direc)))
+    print(str.encode(machine_step))
     if ser.read() != b'*':
         print("error error error ERROR")
     global abs_steps
@@ -104,7 +105,7 @@ def relative_home(relative_pos):
     else:
         move('f',-relative_pos[0])
 
-    if(relative_pos[0]) > 0:
+    if(relative_pos[1]) > 0:
         move('d',relative_pos[1])
     else:
         move('u',-relative_pos[1])
@@ -117,10 +118,10 @@ def goTo(x,y,relative_pos,abs_pos):
         move('b',abs(relative_pos[0]-x))
     elif(x>relative_pos[0] and abs_pos[0] + abs(relative_pos[0]-x) <= xlim):
         move('f',abs(relative_pos[0]-x))
-    if(y<relative_pos[1] and abs_pos[1] - abs(relative_pos[0]-x) >= 0):
-        move('d',abs(relative_pos[1]-y))
-    elif(y>relative_pos[1] and abs_pos[1] + abs(relative_pos[0]-x) <= ylim):
+    if(y<relative_pos[1] and abs_pos[1] - abs(relative_pos[1]-y) >= 0):
         move('u',abs(relative_pos[1]-y))
+    elif(y>relative_pos[1] and abs_pos[1] + abs(relative_pos[1]-y) <= ylim):
+        move('d',abs(relative_pos[1]-y))
 
 
 #gross way to do this but tkninter is annoying
