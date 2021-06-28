@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import random
 import pandas as pd
 import numpy as np
+import time
+from datetime import datetime
 
 # #############################u6 setup##########################################
 d = u6.U6()
@@ -46,15 +48,28 @@ def plot_scan():
 
     plt.show()
 
+def reset_data():
+    data = [[],[],[]]
 
+def save_scan():
+    now = datetime.now()
+    dateString = now.strftime("%d-%m-%Y %H:%M:%S")
+
+    df = pd.DataFrame({'Bx':data[0],
+                       'By':data[1],'Bz':data[2],})
+    writer = pd.ExcelWriter("Bfield_at_"+dateString+ '.xlsx')
+    df.to_excel(writer,index=False)
+    writer.save()
 
 win = tk.Tk()
 win.title("3D Mapper")
-win.geometry("2000x500")
+win.geometry("120x160")
 
 
 tk.Button(win, text="scan point",command=scan).grid(column=1, row=1)
 tk.Button(win, text="plot scan",command=plot_scan).grid(column=1, row=2)
-#tk.Button(win, text="save scan",command=save_scan).grid(column=1, row=3)
+tk.Button(win, text="save data",command=save_scan).grid(column=2, row=1)
+tk.Button(win, text="reset data",command=reset_data).grid(column=2, row=2)
+
 
 win.mainloop()
