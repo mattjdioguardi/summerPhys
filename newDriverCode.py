@@ -186,6 +186,8 @@ def scan(relative_pos,abs_pos):
     ser.write((str.encode('M')))
     goTo(xinitial,yinitial,relative_pos,abs_pos)
 
+    plt.show()
+
 def Keithly_Point(relative_pos):
     """records field at a single point from GPIB and returns it in the form
     [z coordonate, y coordonate, Bx, By, Bz]"""
@@ -310,6 +312,32 @@ def Field_Window(relative_pos):
     tk.Label(Field, text = "By:%.7g" %(Cur_Field[3])).grid(column=1,row=2)
     tk.Label(Field, text = "Bz:%.7g" %(Cur_Field[4])).grid(column=1,row=3)
 
+def TD_plot(X,Y,Z,title):
+    fig1,ax=plt.subplots(1,1)
+
+    ax.set_title(title)
+    contour_axis = fig1.gca()
+    ax = contour_axis.contourf(X, Y, Z,100,cmap = "seismic")
+    cb = fig1.colorbar(ax)
+    fig1.subplots_adjust(bottom=0.25)
+
+    axlev = plt.axes([0.25, 0.1, 0.65, 0.03])  #slider location and size
+    slev = Slider(axlev, 'contour levels',0, 100, 100, valstep = 1)     #slider properties
+    axmid = plt.axes([0.25, 0.15, 0.65, 0.03])  #slider location and size
+    smid = Slider(axmid, 'color map center',-100, 100, 0)     #slider properties
+    def update(x):
+        offset = colors.TwoSlopeNorm(vcenter=smid.val)
+        contour_axis.clear()
+        ax = contour_axis.contourf(X,Y,Z,slev.val,norm=offset,cmap = "seismic")
+        cb.update_normal(ax)
+        plt.draw()
+
+    slev.on_changed(update)
+    smid.on_changed(update)
+
+    return slev, smid
+
+
 def Two_D_map(relative_pos,abs_pos):
         step = int(step_size.get())
         xinitial = int(xstart.get())
@@ -352,34 +380,17 @@ def Two_D_map(relative_pos,abs_pos):
         zlen = (len(np.unique(Scan_Data[0])))
         ylen = (len(np.unique(Scan_Data[1])))
 
-        #makes zero field always be middle of the cmap
-        xmax = max(Scan_Data[2]) if max(Scan_Data[2]) > abs(min(Scan_Data[2])) else abs(min(Scan_Data[2]))
-        ymax = max(Scan_Data[3]) if max(Scan_Data[3]) > abs(min(Scan_Data[3])) else abs(min(Scan_Data[3]))
-        zmax = max(Scan_Data[4]) if max(Scan_Data[4]) > abs(min(Scan_Data[4])) else abs(min(Scan_Data[4]))
-
-
-
         zmatrix, ymatrix = np.meshgrid(np.unique(Scan_Data[0]),
                                        np.unique(Scan_Data[1]))
         xfield = np.array(Scan_Data[2]).reshape(ylen, zlen)
         yfield = np.array(Scan_Data[3]).reshape(ylen, zlen)
         zfield = np.array(Scan_Data[4]).reshape(ylen, zlen)
 
-        fig1,ax=plt.subplots(1,1)
-        fig2,ay=plt.subplots(1,1)
-        fig3,az=plt.subplots(1,1)
+        xlevels, xcenter = TD_plot(zmatrix,ymatrix,xfield,"X")
+        ylevels, ycenter = TD_plot(zmatrix,ymatrix,yfield,"Y")
+        ylevels, ycenter = TD_plot(zmatrix,ymatrix,zfield,"Z")
 
-        cx = ax.contourf(zmatrix, ymatrix, xfield, levels = 100,cmap = "seismic", vmin = -xmax, vmax = xmax)
-        fig1.colorbar(cx)
-        ax.set_title("x")
-        cy = ay.contourf(zmatrix, ymatrix, yfield, levels = 100,cmap = "seismic", vmin = -ymax, vmax = ymax)
-        fig2.colorbar(cy)
-        ay.set_title("y")
-        cz = az.contourf(zmatrix, ymatrix, zfield, levels = 100,cmap = "seismic", vmin = -zmax, vmax = zmax)
-        fig3.colorbar(cz)
-        az.set_title("z")
-
-        plt.show()
+        plt.show(blocking = False)
 
         if (save.get()):
             saveData(Scan_Data)
@@ -389,6 +400,7 @@ def Two_D_map(relative_pos,abs_pos):
         ser.write((str.encode(45000)))
         ser.write((str.encode('M')))
         goTo(xinitial,yinitial,relative_pos,abs_pos)
+
 
 
 def plot_Bfield(data):
