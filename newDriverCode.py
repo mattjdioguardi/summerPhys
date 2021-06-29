@@ -92,7 +92,19 @@ def abs_home(abs_pos):
 
 def relative_home(relative_pos,abs_pos):
     """moves the steppers back to the relative home position"""
+<<<<<<< HEAD
     goTo(0,0,realtive_pos, abs_pos)
+=======
+    if(relative_pos[0]) > 0:
+        move('b',relative_pos[0])
+    else:
+        move('f',-relative_pos[0])
+
+    if(relative_pos[1]) > 0:
+        move('d',relative_pos[1])
+    else:
+        move('u',-relative_pos[1])
+>>>>>>> dfd9dee220050fefdeb505c5625558fe06ce0212
 
 def goTo(x,y,relative_pos,abs_pos):
     """given an x(z) and y position the stepers move to those coordinates in
