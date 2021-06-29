@@ -15,7 +15,7 @@ import numpy as np
 ###################NEW 2021##########################
 
 ################################serial setup###################################
-ser = serial.Serial('/dev/cu.usbmodem0E22D9B1')  # open serial port
+ser = serial.Serial('/dev/cu.usbmodem0E22D9A1',baudrate=115200)  # open serial port
 
 ########globals :(((##################
 abs_pos = [0,0]
@@ -74,6 +74,7 @@ def move(direc, step):
 
     ser.write((str.encode(machine_step)))
     ser.write((str.encode(direc)))
+    print(str.encode(machine_step))
     if ser.read() != b'*':
         print("error error error ERROR")
     global abs_steps
@@ -87,27 +88,11 @@ def move(direc, step):
 
 def abs_home(abs_pos):
     """moves the steppers back to the Absolute zero position"""
-    if(abs_pos[0]) > 0:
-        move('b',abs_pos[0])
-    else:
-        move('f',-abs_pos[0])
+    goTo(0,0,abs_pos,abs_pos)
 
-    if(abs_pos[1]) > 0:
-        move('d',abs_pos[1])
-    else:
-        move('u',-abs_pos[1])
-
-def relative_home(relative_pos):
+def relative_home(relative_pos,abs_pos):
     """moves the steppers back to the relative home position"""
-    if(relative_pos[0]) > 0:
-        move('b',relative_pos[0])
-    else:
-        move('f',-relative_pos[0])
-
-    if(relative_pos[0]) > 0:
-        move('d',relative_pos[1])
-    else:
-        move('u',-relative_pos[1])
+    goTo(0,0,realtive_pos, abs_pos)
 
 def goTo(x,y,relative_pos,abs_pos):
     """given an x(z) and y position the stepers move to those coordinates in
@@ -117,10 +102,10 @@ def goTo(x,y,relative_pos,abs_pos):
         move('b',abs(relative_pos[0]-x))
     elif(x>relative_pos[0] and abs_pos[0] + abs(relative_pos[0]-x) <= xlim):
         move('f',abs(relative_pos[0]-x))
-    if(y<relative_pos[1] and abs_pos[1] - abs(relative_pos[0]-x) >= 0):
-        move('d',abs(relative_pos[1]-y))
-    elif(y>relative_pos[1] and abs_pos[1] + abs(relative_pos[0]-x) <= ylim):
+    if(y<relative_pos[1] and abs_pos[1] - abs(relative_pos[1]-y) >= 0):
         move('u',abs(relative_pos[1]-y))
+    elif(y>relative_pos[1] and abs_pos[1] + abs(relative_pos[1]-y) <= ylim):
+        move('d',abs(relative_pos[1]-y))
 
 
 #gross way to do this but tkninter is annoying
@@ -161,6 +146,10 @@ def scan(relative_pos,abs_pos):
     ydir = 'u' if yfinal > yinitial else 'd'
 
     goTo(xinitial,yinitial,relative_pos,abs_pos)
+    ser.write((str.encode(2500)))
+    ser.write((str.encode('m')))
+    ser.write((str.encode(2500)))
+    ser.write((str.encode('M')))
     Scan_Data = [[],[],[],[],[]]
 
     while (round(relative_pos[0]) != xfinal or round(relative_pos[1]) != yfinal):
@@ -178,6 +167,11 @@ def scan(relative_pos,abs_pos):
 
     if(save.get()):
         saveData(Scan_Data)
+
+    ser.write((str.encode(50000)))
+    ser.write((str.encode('m')))
+    ser.write((str.encode(45000)))
+    ser.write((str.encode('M')))
     goTo(xinitial,yinitial,relative_pos,abs_pos)
 
 def Keithly_Point(relative_pos):
@@ -319,9 +313,19 @@ def Two_D_map(relative_pos,abs_pos):
         ydir = 'u' if yfinal > yinitial else 'd'
 
         goTo(xinitial,yinitial,relative_pos,abs_pos)
+
         Scan_Data = [[],[],[],[],[]]
         while(round(relative_pos[1]) != yfinal):
+            ser.write((str.encode(50000)))
+            ser.write((str.encode('m')))
+            ser.write((str.encode(45000)))
+            ser.write((str.encode('M')))
             goTo(xinitial,relative_pos[1], relative_pos,abs_pos)
+            ser.write((str.encode(2500)))
+            ser.write((str.encode('m')))
+            ser.write((str.encode(2500)))
+            ser.write((str.encode('M')))
+
             while (round(relative_pos[0]) != xfinal):
                 collect(relative_pos, Scan_Data)
                 if(abs(relative_pos[0] - xfinal) >= step):
@@ -367,6 +371,11 @@ def Two_D_map(relative_pos,abs_pos):
 
         if (save.get()):
             saveData(Scan_Data)
+
+        ser.write((str.encode(50000)))
+        ser.write((str.encode('m')))
+        ser.write((str.encode(45000)))
+        ser.write((str.encode('M')))
         goTo(xinitial,yinitial,relative_pos,abs_pos)
 
 
@@ -438,7 +447,7 @@ tk.Label(win, text="relative position").grid(row=1,column=2)
 relative_Label = tk.Label(win, text = "%s , %s" %(relative_pos[0],relative_pos[1]))
 relative_Label.grid(column=2, row=2)
 tk.Button(win, text="set relative 0",command=partial(set_relative_zero,relative_pos, relative_offset)).grid(column=2, row=3)
-tk.Button(win, text="home to relative 0",command=partial(relative_home,relative_pos)).grid(column=2, row=4)
+tk.Button(win, text="home to relative 0",command=partial(relative_home,relative_pos,abs_pos)).grid(column=2, row=4)
 
 tk.Button(win, text="up 1",command=partial(move,'u', 1)).grid(column=6, row=4)
 tk.Button(win, text="up 10",command=partial(move,'u', 10)).grid(column=6, row=3)
