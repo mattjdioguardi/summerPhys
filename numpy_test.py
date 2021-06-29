@@ -87,7 +87,7 @@ levels2, center2 = TD_plot(X,Y,Z,"test")
 plt.show(block=False)
 
 print("testing testin")
-plt.show()
+plt.show
 
 
 
