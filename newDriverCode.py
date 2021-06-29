@@ -158,10 +158,10 @@ def scan(relative_pos,abs_pos):
     ydir = 'u' if yfinal > yinitial else 'd'
 
     goTo(xinitial,yinitial,relative_pos,abs_pos)
-    ser.write((str.encode(2500)))
-    ser.write((str.encode('m')))
-    ser.write((str.encode(2500)))
-    ser.write((str.encode('M')))
+    # ser.write((str.encode(2500)))
+    # ser.write((str.encode('m')))
+    # ser.write((str.encode(2500)))
+    # ser.write((str.encode('M')))
     Scan_Data = [[],[],[],[],[]]
 
     while (round(relative_pos[0]) != xfinal or round(relative_pos[1]) != yfinal):
@@ -180,13 +180,13 @@ def scan(relative_pos,abs_pos):
     if(save.get()):
         saveData(Scan_Data)
 
-    ser.write((str.encode(50000)))
-    ser.write((str.encode('m')))
-    ser.write((str.encode(45000)))
-    ser.write((str.encode('M')))
+    # ser.write((str.encode(50000)))
+    # ser.write((str.encode('m')))
+    # ser.write((str.encode(45000)))
+    # ser.write((str.encode('M')))
     goTo(xinitial,yinitial,relative_pos,abs_pos)
 
-    plt.show()
+
 
 def Keithly_Point(relative_pos):
     """records field at a single point from GPIB and returns it in the form
@@ -356,15 +356,15 @@ def Two_D_map(relative_pos,abs_pos):
 
         Scan_Data = [[],[],[],[],[]]
         while(round(relative_pos[1]) != yfinal):
-            ser.write((str.encode(50000)))
-            ser.write((str.encode('m')))
-            ser.write((str.encode(45000)))
-            ser.write((str.encode('M')))
+            # ser.write((str.encode(50000)))
+            # ser.write((str.encode('m')))
+            # ser.write((str.encode(45000)))
+            # ser.write((str.encode('M')))
             goTo(xinitial,relative_pos[1], relative_pos,abs_pos)
-            ser.write((str.encode(2500)))
-            ser.write((str.encode('m')))
-            ser.write((str.encode(2500)))
-            ser.write((str.encode('M')))
+            # ser.write((str.encode(2500)))
+            # ser.write((str.encode('m')))
+            # ser.write((str.encode(2500)))
+            # ser.write((str.encode('M')))
 
             while (round(relative_pos[0]) != xfinal):
                 collect(relative_pos, Scan_Data)
@@ -395,10 +395,10 @@ def Two_D_map(relative_pos,abs_pos):
         if (save.get()):
             saveData(Scan_Data)
 
-        ser.write((str.encode(50000)))
-        ser.write((str.encode('m')))
-        ser.write((str.encode(45000)))
-        ser.write((str.encode('M')))
+        # ser.write((str.encode(50000)))
+        # ser.write((str.encode('m')))
+        # ser.write((str.encode(45000)))
+        # ser.write((str.encode('M')))
         goTo(xinitial,yinitial,relative_pos,abs_pos)
 
 
