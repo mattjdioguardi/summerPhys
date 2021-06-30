@@ -85,9 +85,6 @@ levels3, center3 = TD_plot(X,X,Z,"test")
 
 
 
-
-plt.show(block=False)
-
 plt.show()
 print("testing testin")
 

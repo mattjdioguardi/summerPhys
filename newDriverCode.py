@@ -7,6 +7,9 @@ from multiprocessing import Process, Lock
 import u6
 from functools import partial
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
+import matplotlib.cbook as cbook
+import matplotlib.coors as colors 
 import math
 import pandas as pd
 import numpy as np
@@ -92,20 +95,8 @@ def abs_home(abs_pos):
 
 def relative_home(relative_pos,abs_pos):
     """moves the steppers back to the relative home position"""
-<<<<<<< HEAD
-    goTo(0,0,realtive_pos, abs_pos)
-=======
-    if(relative_pos[0]) > 0:
-        move('b',relative_pos[0])
-    else:
-        move('f',-relative_pos[0])
-
-    if(relative_pos[1]) > 0:
-        move('d',relative_pos[1])
-    else:
-        move('u',-relative_pos[1])
->>>>>>> dfd9dee220050fefdeb505c5625558fe06ce0212
-
+    goTo(0,0,relative_pos, abs_pos)
+    
 def goTo(x,y,relative_pos,abs_pos):
     """given an x(z) and y position the stepers move to those coordinates in
     terms of the given position relative or absolute can be passed"""
