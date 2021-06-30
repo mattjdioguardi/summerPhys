@@ -66,7 +66,7 @@ def TD_plot(X,Y,Z,title):
     axlev = plt.axes([0.25, 0.1, 0.65, 0.03])  #slider location and size
     slev = Slider(axlev, 'contour levels',0, 100, 100, valstep = 1)     #slider properties
     axmid = plt.axes([0.25, 0.15, 0.65, 0.03])  #slider location and size
-    smid = Slider(axmid, 'color map center',-100, 100, 0)     #slider properties
+    smid = Slider(axmid, 'color map center',np.amin(Z), np.amax(Z), 0)     #slider properties
     def update(x):
         offset = colors.TwoSlopeNorm(vcenter=smid.val)
         contour_axis.clear()
@@ -81,13 +81,15 @@ def TD_plot(X,Y,Z,title):
 
 levels1, center1 = TD_plot(Y,X,Z,"testw")
 levels2, center2 = TD_plot(X,Y,Z,"test")
+levels3, center3 = TD_plot(X,X,Z,"test")
+
 
 
 
 plt.show(block=False)
 
+plt.show()
 print("testing testin")
-plt.show
 
 
 
