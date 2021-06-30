@@ -9,7 +9,7 @@ from functools import partial
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import matplotlib.cbook as cbook
-import matplotlib.coors as colors 
+import matplotlib.colors as colors 
 import math
 import pandas as pd
 import numpy as np
@@ -77,8 +77,9 @@ def move(direc, step):
 
     ser.write((str.encode(machine_step)))
     ser.write((str.encode(direc)))
-    print(str.encode(machine_step))
-    if ser.read() != b'*':
+    ch = ser.read()
+    if ch != b'*':
+        print(ch)
         print("error error error ERROR")
     global abs_steps
     global abs_pos
@@ -89,14 +90,6 @@ def move(direc, step):
     abs_Label.config(text = "%.3g , %.3g" %(abs_pos[0],abs_pos[1]))
     relative_Label.config(text = "%.3g , %.3g" %(relative_pos[0],relative_pos[1]))
 
-def abs_home(abs_pos):
-    """moves the steppers back to the Absolute zero position"""
-    goTo(0,0,abs_pos,abs_pos)
-
-def relative_home(relative_pos,abs_pos):
-    """moves the steppers back to the relative home position"""
-    goTo(0,0,relative_pos, abs_pos)
-    
 def goTo(x,y,relative_pos,abs_pos):
     """given an x(z) and y position the stepers move to those coordinates in
     terms of the given position relative or absolute can be passed"""
@@ -105,10 +98,21 @@ def goTo(x,y,relative_pos,abs_pos):
         move('b',abs(relative_pos[0]-x))
     elif(x>relative_pos[0] and abs_pos[0] + abs(relative_pos[0]-x) <= xlim):
         move('f',abs(relative_pos[0]-x))
-    if(y<relative_pos[1] and abs_pos[1] - abs(relative_pos[1]-y) >= 0):
-        move('u',abs(relative_pos[1]-y))
-    elif(y>relative_pos[1] and abs_pos[1] + abs(relative_pos[1]-y) <= ylim):
+    if(y<relative_pos[1] and abs_pos[1] - abs(relative_pos[1]-y) >= ylim):
         move('d',abs(relative_pos[1]-y))
+    elif(y>relative_pos[1] and abs_pos[1] + abs(relative_pos[1]-y) <= 0):
+        move('u',abs(relative_pos[1]-y))
+
+
+
+def abs_home(abs_pos):
+    """moves the steppers back to the Absolute zero position"""
+    goTo(0,0,abs_pos,abs_pos)
+
+def relative_home(relative_pos,abs_pos):
+    """moves the steppers back to the relative home position"""
+    goTo(0,0,relative_pos, abs_pos)
+    
 
 
 #gross way to do this but tkninter is annoying
@@ -149,10 +153,10 @@ def scan(relative_pos,abs_pos):
     ydir = 'u' if yfinal > yinitial else 'd'
 
     goTo(xinitial,yinitial,relative_pos,abs_pos)
-    # ser.write((str.encode(2500)))
-    # ser.write((str.encode('m')))
-    # ser.write((str.encode(2500)))
-    # ser.write((str.encode('M')))
+    ser.write((str.encode(str(2500))))
+    ser.write((str.encode('m')))
+    ser.write((str.encode(str(2500))))
+    ser.write((str.encode('M')))
     Scan_Data = [[],[],[],[],[]]
 
     while (round(relative_pos[0]) != xfinal or round(relative_pos[1]) != yfinal):
@@ -171,10 +175,10 @@ def scan(relative_pos,abs_pos):
     if(save.get()):
         saveData(Scan_Data)
 
-    # ser.write((str.encode(50000)))
-    # ser.write((str.encode('m')))
-    # ser.write((str.encode(45000)))
-    # ser.write((str.encode('M')))
+    ser.write((str.encode(str(50000))))
+    ser.write((str.encode('m')))
+    ser.write((str.encode(str(45000))))
+    ser.write((str.encode('M')))
     goTo(xinitial,yinitial,relative_pos,abs_pos)
 
 
@@ -347,15 +351,16 @@ def Two_D_map(relative_pos,abs_pos):
 
         Scan_Data = [[],[],[],[],[]]
         while(round(relative_pos[1]) != yfinal):
-            # ser.write((str.encode(50000)))
-            # ser.write((str.encode('m')))
-            # ser.write((str.encode(45000)))
-            # ser.write((str.encode('M')))
+            ser.write((str.encode(str(50000))))
+            ser.write((str.encode('m')))
+            ser.write((str.encode(str(45000))))
+            ser.write((str.encode('M')))
             goTo(xinitial,relative_pos[1], relative_pos,abs_pos)
-            # ser.write((str.encode(2500)))
-            # ser.write((str.encode('m')))
-            # ser.write((str.encode(2500)))
-            # ser.write((str.encode('M')))
+            ser.write((str.encode(str(2500))))
+            ser.write((str.encode('m')))
+            ser.write((str.encode(str(2500))))
+            ser.write((str.encode('M')))
+            time.sleep(1)
 
             while (round(relative_pos[0]) != xfinal):
                 collect(relative_pos, Scan_Data)
@@ -379,18 +384,20 @@ def Two_D_map(relative_pos,abs_pos):
 
         xlevels, xcenter = TD_plot(zmatrix,ymatrix,xfield,"X")
         ylevels, ycenter = TD_plot(zmatrix,ymatrix,yfield,"Y")
-        ylevels, ycenter = TD_plot(zmatrix,ymatrix,zfield,"Z")
+        zlevels, zcenter = TD_plot(zmatrix,ymatrix,zfield,"Z")
 
-        plt.show(blocking = False)
+        plt.show()
 
         if (save.get()):
             saveData(Scan_Data)
 
-        # ser.write((str.encode(50000)))
-        # ser.write((str.encode('m')))
-        # ser.write((str.encode(45000)))
-        # ser.write((str.encode('M')))
+        ser.write((str.encode(str(50000))))
+        ser.write((str.encode('m')))
+        ser.write((str.encode(str(45000))))
+        ser.write((str.encode('M')))
         goTo(xinitial,yinitial,relative_pos,abs_pos)
+        
+        plt.show(block=True)
 
 
 
