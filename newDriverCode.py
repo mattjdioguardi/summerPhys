@@ -373,11 +373,11 @@ def Two_D_map(relative_pos,abs_pos):
             elif(relative_pos[1] != yfinal):
                 move(ydir,abs(relative_pos[1] - yfinal))
 
-        zlen = (len(np.unique(Scan_Data[0])))
-        ylen = (len(np.unique(Scan_Data[1])))
+        zlen = (len(pd.unique(Scan_Data[0])))
+        ylen = (len(pd.unique(Scan_Data[1])))
 
-        zmatrix, ymatrix = np.meshgrid(np.unique(Scan_Data[0]),
-                                       np.unique(Scan_Data[1]))
+        zmatrix, ymatrix = np.meshgrid(pd.unique(Scan_Data[0]),
+                                       pd.unique(Scan_Data[1]))
         xfield = np.array(Scan_Data[2]).reshape(ylen, zlen)
         yfield = np.array(Scan_Data[3]).reshape(ylen, zlen)
         zfield = np.array(Scan_Data[4]).reshape(ylen, zlen)
@@ -385,6 +385,8 @@ def Two_D_map(relative_pos,abs_pos):
         xlevels, xcenter = TD_plot(zmatrix,ymatrix,xfield,"X")
         ylevels, ycenter = TD_plot(zmatrix,ymatrix,yfield,"Y")
         zlevels, zcenter = TD_plot(zmatrix,ymatrix,zfield,"Z")
+        fig4, ZY = plt.subplots(1,1)
+        plt.streamplot(zmatrix,ymatrix,zfield,yfield)
 
         plt.show()
 
