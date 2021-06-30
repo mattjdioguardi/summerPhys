@@ -4,8 +4,9 @@ from matplotlib.widgets import Slider
 import matplotlib.cbook as cbook
 import matplotlib.colors as colors
 import tkinter as tk
-x = [0,1,2,0,1,2,0,1,2,0,1,2]
-y = [1,1,1,2,2,2,3,3,3,4,4,4]
+import pandas as pd
+x = [-1,0,1,-1,0,1,-1,0,1,-1,0,1]
+y = [-1,-1,-1,-2,-2,-2,-3,-3,-3,-4,-4,-4]
 Bz = [1,1,1,1,1,1,1,1,1,1,1,1]
 Bx = [12,11,10,9,8,7,6,5,4,3,2,1]
 
@@ -15,10 +16,16 @@ Bx = [12,11,10,9,8,7,6,5,4,3,2,1]
 max = max(Bz) if max(Bz) > abs(min(Bz)) else abs(min(Bz))
 
 
-xx, yy = np.meshgrid(np.unique(x), np.unique(y))
-Bzz = np.array(Bz).reshape(len(np.unique(y)), len(np.unique(x)))
-Bxx = np.array(Bx).reshape(len(np.unique(y)), len(np.unique(x)))
+xx, yy = np.meshgrid(pd.unique(x), pd.unique(y))
 
+print(pd.unique(x))
+print(pd.unique(y))
+print(xx)
+print(yy)
+
+Bzz = np.array(Bz).reshape(len(pd.unique(y)), len(pd.unique(x)))
+Bxx = np.array(Bx).reshape(len(pd.unique(y)), len(pd.unique(x)))
+print(Bxx)
 
 feature_x = np.arange(0, 50, 2)
 feature_y = np.arange(0, 50, 3)
@@ -57,9 +64,9 @@ Z = np.cos(X / 2) + np.sin(Y / 4)
 def TD_plot(X,Y,Z,title):
     fig1,ax=plt.subplots(1,1)
 
-    ax.set_title(title)
+    fig1.suptitle(title)
     contour_axis = fig1.gca()
-    ax = contour_axis.contourf(X, Y, Z,100,cmap = "seismic")
+    ax = plt.contourf(X, Y, Z,100,cmap = "seismic")
     cb = fig1.colorbar(ax)
     fig1.subplots_adjust(bottom=0.25)
 
@@ -79,11 +86,13 @@ def TD_plot(X,Y,Z,title):
 
     return slev, smid
 
-levels1, center1 = TD_plot(Y,X,Z,"testw")
-levels2, center2 = TD_plot(X,Y,Z,"test")
-levels3, center3 = TD_plot(X,X,Z,"test")
-
-
+levels1, center1 = TD_plot(xx,yy,Bxx,"testw")
+#levels2, center2 = TD_plot(X,Y,Z,"test")
+#levels3, center3 = TD_plot(X,X,Z,"test")
+#
+#
+# figt,ac=plt.subplots(1,1)
+# ac.streamplot(xx,yy,Bxx,Bzz)
 
 plt.show()
 print("testing testin")

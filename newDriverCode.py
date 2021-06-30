@@ -9,7 +9,7 @@ from functools import partial
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import matplotlib.cbook as cbook
-import matplotlib.colors as colors 
+import matplotlib.colors as colors
 import math
 import pandas as pd
 import numpy as np
@@ -112,7 +112,7 @@ def abs_home(abs_pos):
 def relative_home(relative_pos,abs_pos):
     """moves the steppers back to the relative home position"""
     goTo(0,0,relative_pos, abs_pos)
-    
+
 
 
 #gross way to do this but tkninter is annoying
@@ -310,7 +310,7 @@ def Field_Window(relative_pos):
 def TD_plot(X,Y,Z,title):
     fig1,ax=plt.subplots(1,1)
 
-    ax.set_title(title)
+    fig1.suptitle(title)
     contour_axis = fig1.gca()
     ax = contour_axis.contourf(X, Y, Z,100,cmap = "seismic")
     cb = fig1.colorbar(ax)
@@ -396,7 +396,7 @@ def Two_D_map(relative_pos,abs_pos):
         ser.write((str.encode(str(45000))))
         ser.write((str.encode('M')))
         goTo(xinitial,yinitial,relative_pos,abs_pos)
-        
+
         plt.show(block=True)
 
 
