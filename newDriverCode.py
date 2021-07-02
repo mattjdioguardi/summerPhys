@@ -350,37 +350,37 @@ def Two_D_map(relative_pos,abs_pos):
         goTo(xinitial,yinitial,relative_pos,abs_pos)
 
         Scan_Data = [[],[],[],[],[]]
-        while(round(relative_pos[1]) != yfinal):
-            ser.write((str.encode(str(50000))))
+        while(round(relative_pos[0]) != xfinal):
+            ser.write((str.encode(str(40000))))
             ser.write((str.encode('m')))
-            ser.write((str.encode(str(45000))))
+            ser.write((str.encode(str(30000))))
             ser.write((str.encode('M')))
-            goTo(xinitial,relative_pos[1], relative_pos,abs_pos)
+            goTo(relative_pos[0],yinitial, relative_pos,abs_pos)
             ser.write((str.encode(str(2500))))
             ser.write((str.encode('m')))
             ser.write((str.encode(str(2500))))
             ser.write((str.encode('M')))
             time.sleep(1)
 
-            while (round(relative_pos[0]) != xfinal):
+            while (round(relative_pos[1]) != yfinal):
                 collect(relative_pos, Scan_Data)
-                if(abs(relative_pos[0] - xfinal) >= step):
-                    move(xdir,step)
-                elif(relative_pos[0] != xfinal):
-                    move(xdir,abs(relative_pos[0] - xfinal))
-            if(abs(relative_pos[1] - yfinal) >= step):
-                move(ydir,step)
-            elif(relative_pos[1] != yfinal):
-                move(ydir,abs(relative_pos[1] - yfinal))
+                if(abs(relative_pos[1] - yfinal) >= step):
+                    move(ydir,step)
+                elif(relative_pos[1] != yfinal):
+                    move(ydir,abs(relative_pos[1] - yfinal))
+            if(abs(relative_pos[0] - xfinal) >= step):
+                move(xdir,step)
+            elif(relative_pos[0] != xfinal):
+                move(xdir,abs(relative_pos[0] - xfinal))
 
         zlen = (len(pd.unique(Scan_Data[0])))
         ylen = (len(pd.unique(Scan_Data[1])))
 
         zmatrix, ymatrix = np.meshgrid(pd.unique(Scan_Data[0]),
                                        pd.unique(Scan_Data[1]))
-        xfield = np.array(Scan_Data[2]).reshape(ylen, zlen)
-        yfield = np.array(Scan_Data[3]).reshape(ylen, zlen)
-        zfield = np.array(Scan_Data[4]).reshape(ylen, zlen)
+        xfield = np.rot90(np.fliplr(np.array(Scan_Data[2]).reshape(zlen, ylen)))
+        yfield = np.rot90(np.fliplr(np.array(Scan_Data[3]).reshape(zlen, ylen)))
+        zfield = np.rot90(np.fliplr(np.array(Scan_Data[4]).reshape(zlen, ylen)))
 
         xlevels, xcenter = TD_plot(zmatrix,ymatrix,xfield,"X")
         ylevels, ycenter = TD_plot(zmatrix,ymatrix,yfield,"Y")
@@ -393,9 +393,9 @@ def Two_D_map(relative_pos,abs_pos):
         if (save.get()):
             saveData(Scan_Data)
 
-        ser.write((str.encode(str(50000))))
+        ser.write((str.encode(str(40000))))
         ser.write((str.encode('m')))
-        ser.write((str.encode(str(45000))))
+        ser.write((str.encode(str(30000))))
         ser.write((str.encode('M')))
         goTo(xinitial,yinitial,relative_pos,abs_pos)
 
