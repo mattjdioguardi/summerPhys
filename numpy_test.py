@@ -91,8 +91,8 @@ levels1, center1 = TD_plot(xx,yy,Bxx,"testw")
 #levels3, center3 = TD_plot(X,X,Z,"test")
 #
 #
-# figt,ac=plt.subplots(1,1)
-# ac.streamplot(xx,yy,Bxx,Bzz)
+figt,ac=plt.subplots(1,1)
+ac.streamplot(xx,yy,Bxx,Bzz)
 
 plt.show()
 print("testing testin")

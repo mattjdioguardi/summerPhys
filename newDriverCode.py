@@ -18,7 +18,7 @@ import numpy as np
 ###################NEW 2021##########################
 
 ################################serial setup###################################
-ser = serial.Serial('/dev/cu.usbmodem0E22D9A1',baudrate=115200)  # open serial port
+#ser = serial.Serial('/dev/cu.usbmodem0E22D9A1',baudrate=115200)  # open serial port
 
 ########globals :(((##################
 abs_pos = [0,0]
@@ -127,17 +127,22 @@ def goToClick(relative_pos,abs_pos):
 # leaving for later or never
 #should probably add a get direction fucntion so goto and this are cleaner
 #need to add bounds so arm doestn crash
-def scan(relative_pos,abs_pos):
+
+
+def scan_Click():
+    global relative_pos
+    global abs_pos
+    scan(int(step_size.get()),int(xstart.get()),int(ystart.get()),
+              int(xend.get()),int(yend.get()),relative_pos, abs_pos, mode.get(),
+              save.get())
+
+def scan(step,xinitial,yinitial,xfinal,yfinal,relative_pos,abs_pos,mode,save):
     """Pulls starting coordinates, ending coordinates, and a step size from the
     window and then moves in a very rough line between the two points. These
     coordinates are interms of the realative zero postion. Collects
     measurements as it goes and then saves this data to a timestamped
     spreadsheet"""
-    step = int(step_size.get())
-    xinitial = int(xstart.get())
-    yinitial = int(ystart.get())
-    xfinal = int(xend.get())
-    yfinal = int(yend.get())
+
     m = None if (xfinal-xinitial) == 0 else(yfinal - yinitial)/(xfinal-xinitial)
 
     if(m != None):
@@ -160,7 +165,7 @@ def scan(relative_pos,abs_pos):
     Scan_Data = [[],[],[],[],[]]
 
     while (round(relative_pos[0]) != xfinal or round(relative_pos[1]) != yfinal):
-        collect(relative_pos, Scan_Data)
+        collect(relative_pos, Scan_Data,mode)
         if(abs(relative_pos[0] - xfinal) >= xstep):
             move(xdir,xstep)
         elif(relative_pos[0] != xfinal):
@@ -169,15 +174,15 @@ def scan(relative_pos,abs_pos):
             move(ydir,ystep)
         elif(relative_pos[1] != yfinal):
             move(ydir,abs(relative_pos[1] - yfinal))
-    collect(relative_pos, Scan_Data)
+    collect(relative_pos, Scan_Data,mode)
     plot_Bfield(Scan_Data)
 
-    if(save.get()):
+    if(save):
         saveData(Scan_Data)
 
-    ser.write((str.encode(str(50000))))
+    ser.write((str.encode(str(40000))))
     ser.write((str.encode('m')))
-    ser.write((str.encode(str(45000))))
+    ser.write((str.encode(str(30000))))
     ser.write((str.encode('M')))
     goTo(xinitial,yinitial,relative_pos,abs_pos)
 
@@ -228,12 +233,17 @@ def U6_Point(relative_pos):
     d.streamStop()
     return Bfield
 
-def initialize_sensors():
+
+def initialize_Click():
+    initialize_sensors(mode.get())
+
+
+def initialize_Sensors(mode):
     """Initiliazes the selected sensor"""
 
     global inst
     global d
-    if(mode.get() == "Keithley"):
+    if(mode == "Keithley"):
         ##############################Keithley Set Up#####################################
         rm = pyvisa.ResourceManager()
         rm.list_resources()
@@ -244,7 +254,7 @@ def initialize_sensors():
         inst.write("SENS:VOLT:NPLC 5")		#integration time in PLCs, 1 PLC= 1power line cycle =1/60 sec
         inst.write("SENS:VOLT:DC:AVER:COUN 6")
 
-    elif(mode.get() == "labjack"):
+    elif(mode == "labjack"):
         # #############################u6 setup##########################################
         d = u6.U6()
         d.getCalibrationData()
@@ -252,7 +262,7 @@ def initialize_sensors():
         d.streamConfig(NumChannels=3, ChannelNumbers=[0, 1, 2], ChannelOptions=[0, 0, 0],
                         SettlingFactor=1, ResolutionIndex=1, ScanFrequency=10000)
 
-    elif(mode.get() == "Sypris"):
+    elif(mode == "Sypris"):
         ###################sypris setup#####################
         rm = pyvisa.ResourceManager()
         rm.list_resources()
@@ -263,16 +273,16 @@ def initialize_sensors():
         inst.write("CALC#:AVER:COUN 6")
 
 
-def collect(relative_pos,data):
+def collect(relative_pos,data, mode):
     """Records data from GPIB  and appends them to a passed list of form
     [[z coordonates], [y coordonates], [Bx], [By], [Bz]] where each entry of the
     same index is one data point"""
 
-    if(mode.get() == "Keithley"):
+    if(mode == "Keithley"):
         Bfield = Keithly_Point(relative_pos)
-    elif(mode.get() == "labjack"):
+    elif(mode == "labjack"):
         Bfield = U6_Point(relative_pos)
-    elif(mode.get() == "Sypris"):
+    elif(mode == "Sypris"):
         Bfield = Sypris_Point(relative_pos)
     for x in range(len(Bfield)):
         data[x].append(Bfield[x])
@@ -333,12 +343,16 @@ def TD_plot(X,Y,Z,title):
     return slev, smid
 
 
-def Two_D_map(relative_pos,abs_pos):
-        step = int(step_size.get())
-        xinitial = int(xstart.get())
-        yinitial = int(ystart.get())
-        xfinal = int(xend.get())
-        yfinal = int(yend.get())
+def Two_D_map_Click():
+    global relative_pos
+    global abs_pos
+    Two_D_map(int(step_size.get()),int(xstart.get()),int(ystart.get()),
+              int(xend.get()),int(yend.get()),relative_pos, abs_pos, mode.get(),
+              save.get(),dom_dir.get())
+
+
+def Two_D_map(step, xinitial, yinitial, xfinal, yfinal,relative_pos,abs_pos,mode,save,dominant):
+
 
         xfinal += 1 if xfinal > xinitial else -1
         yfinal += 1 if yfinal > yinitial else -1
@@ -350,47 +364,83 @@ def Two_D_map(relative_pos,abs_pos):
         goTo(xinitial,yinitial,relative_pos,abs_pos)
 
         Scan_Data = [[],[],[],[],[]]
-        while(round(relative_pos[0]) != xfinal):
-            ser.write((str.encode(str(40000))))
-            ser.write((str.encode('m')))
-            ser.write((str.encode(str(30000))))
-            ser.write((str.encode('M')))
-            goTo(relative_pos[0],yinitial, relative_pos,abs_pos)
-            ser.write((str.encode(str(2500))))
-            ser.write((str.encode('m')))
-            ser.write((str.encode(str(2500))))
-            ser.write((str.encode('M')))
-            time.sleep(1)
+        #this is vile should just make a funtion that swaps the directions
+        #to deceased to do that rn this will work
+        if dominant == y:
+            while(round(relative_pos[0]) != xfinal):
+                ser.write((str.encode(str(40000))))
+                ser.write((str.encode('m')))
+                ser.write((str.encode(str(30000))))
+                ser.write((str.encode('M')))
+                goTo(relative_pos[0],yinitial, relative_pos,abs_pos)
+                ser.write((str.encode(str(2500))))
+                ser.write((str.encode('m')))
+                ser.write((str.encode(str(2500))))
+                ser.write((str.encode('M')))
+                time.sleep(1)
 
-            while (round(relative_pos[1]) != yfinal):
-                collect(relative_pos, Scan_Data)
+                while (round(relative_pos[1]) != yfinal):
+                    collect(relative_pos, Scan_Data,mode)
+                    if(abs(relative_pos[1] - yfinal) >= step):
+                        move(ydir,step)
+                    elif(relative_pos[1] != yfinal):
+                        move(ydir,abs(relative_pos[1] - yfinal))
+                if(abs(relative_pos[0] - xfinal) >= step):
+                    move(xdir,step)
+                elif(relative_pos[0] != xfinal):
+                    move(xdir,abs(relative_pos[0] - xfinal))
+
+            zlen = (len(pd.unique(Scan_Data[0])))
+            ylen = (len(pd.unique(Scan_Data[1])))
+
+            zmatrix, ymatrix = np.meshgrid(pd.unique(Scan_Data[0]),
+                                           pd.unique(Scan_Data[1]))
+            xfield = np.rot90(np.fliplr(np.array(Scan_Data[2]).reshape(zlen, ylen)))
+            yfield = np.rot90(np.fliplr(np.array(Scan_Data[3]).reshape(zlen, ylen)))
+            zfield = np.rot90(np.fliplr(np.array(Scan_Data[4]).reshape(zlen, ylen)))
+
+            xlevels, xcenter = TD_plot(zmatrix,ymatrix,xfield,"X")
+            ylevels, ycenter = TD_plot(zmatrix,ymatrix,yfield,"Y")
+            zlevels, zcenter = TD_plot(zmatrix,ymatrix,zfield,"Z")
+        else:
+            while(round(relative_pos[1]) != yfinal):
+                ser.write((str.encode(str(40000))))
+                ser.write((str.encode('m')))
+                ser.write((str.encode(str(30000))))
+                ser.write((str.encode('M')))
+                goTo(xinitial,relative_pos[0], relative_pos,abs_pos)
+                ser.write((str.encode(str(2500))))
+                ser.write((str.encode('m')))
+                ser.write((str.encode(str(2500))))
+                ser.write((str.encode('M')))
+                time.sleep(1)
+
+                while (round(relative_pos[0]) != xfinal):
+                    collect(relative_pos, Scan_Data,mode)
+                    if(abs(relative_pos[0] - xfinal) >= step):
+                        move(xdir,step)
+                    elif(relative_pos[0] != xfinal):
+                        move(xdir,abs(relative_pos[0] - xfinal))
                 if(abs(relative_pos[1] - yfinal) >= step):
                     move(ydir,step)
                 elif(relative_pos[1] != yfinal):
                     move(ydir,abs(relative_pos[1] - yfinal))
-            if(abs(relative_pos[0] - xfinal) >= step):
-                move(xdir,step)
-            elif(relative_pos[0] != xfinal):
-                move(xdir,abs(relative_pos[0] - xfinal))
 
-        zlen = (len(pd.unique(Scan_Data[0])))
-        ylen = (len(pd.unique(Scan_Data[1])))
+            zlen = (len(pd.unique(Scan_Data[0])))
+            ylen = (len(pd.unique(Scan_Data[1])))
 
-        zmatrix, ymatrix = np.meshgrid(pd.unique(Scan_Data[0]),
-                                       pd.unique(Scan_Data[1]))
-        xfield = np.rot90(np.fliplr(np.array(Scan_Data[2]).reshape(zlen, ylen)))
-        yfield = np.rot90(np.fliplr(np.array(Scan_Data[3]).reshape(zlen, ylen)))
-        zfield = np.rot90(np.fliplr(np.array(Scan_Data[4]).reshape(zlen, ylen)))
+            zmatrix, ymatrix = np.meshgrid(pd.unique(Scan_Data[0]),
+                                           pd.unique(Scan_Data[1]))
+            xfield = np.array(Scan_Data[2]).reshape(ylen, zlen)
+            yfield = np.array(Scan_Data[3]).reshape(ylen, zlen)
+            zfield = np.array(Scan_Data[4]).reshape(ylen, zlen)
 
-        xlevels, xcenter = TD_plot(zmatrix,ymatrix,xfield,"X")
-        ylevels, ycenter = TD_plot(zmatrix,ymatrix,yfield,"Y")
-        zlevels, zcenter = TD_plot(zmatrix,ymatrix,zfield,"Z")
         fig4, ZY = plt.subplots(1,1)
         plt.streamplot(zmatrix,ymatrix,zfield,yfield)
 
         plt.show()
 
-        if (save.get()):
+        if (save):
             saveData(Scan_Data)
 
         ser.write((str.encode(str(40000))))
@@ -460,7 +510,7 @@ way to setup tkinter and it works"""
 
 win = tk.Tk()
 win.title("3D Mapper")
-win.geometry("2000x500")
+win.geometry("2200x700")
 
 tk.Label(win, text="absolute position").grid(row=1,column=1)
 abs_Label = tk.Label(win, text = "%s , %s" %(abs_pos[0],abs_pos[1]))
@@ -518,10 +568,23 @@ xend.grid(column=11,row=7)
 tk.Label(win, text="y:").grid(column=12,row=7)
 yend = tk.Entry(win,width=3)
 yend.grid(column=13,row=7)
-tk.Button(win, text="GO!",command=partial(scan,relative_pos,abs_pos)).grid(column=14, row=7)
-tk.Button(win, text="2D GO!",command=partial(Two_D_map,relative_pos,abs_pos)).grid(column=15, row=7)
+tk.Button(win, text="GO!",command=partial(scan_Click)).grid(column=14, row=7)
+tk.Button(win, text="2D GO!",command=partial(Two_D_map_Click)).grid(column=15, row=7)
+
+dom_dir = tk.StringVar(win)
+doms = {"z","y"}
+dom_dir.set("z")
+dom_select = tk.OptionMenu(win,dom_dir,*doms)
+dom_select.grid(column=15,row=8)
+
+
+
 save = tk.IntVar()
 tk.Checkbutton(win, text="Save Data?", variable=save).grid(column = 16, row=7)
+
+
+
+
 
 
 tk.Button(win, text="Get current field",command= partial(Field_Window,relative_pos)).grid(column=10,row=9)
@@ -535,25 +598,56 @@ def advancedNewWindow():
     step_Label = tk.Label(advanced, text = "%s , %s" %(abs_steps[0],abs_steps[1]))
     step_Label.grid(column=1,row=1)
 
-tk.Button(win, text="Advanced Settings",command=advancedNewWindow).grid(column=1, row=20)
+tk.Button(win, text="Advanced Settings",command=advancedNewWindow).grid(column=16, row=20)
+
+
+def setCurrent(coil):
+    #this will not be able to stay as a list as multiple lab jacks will require
+    #adressing different devices
+    coils = [(5000,Ax1.get),(5002,Ax2.get)]
+    d.writeResgister(coils[coil][0],coils[coil][1])
+
+
+Ax1 = tk.Entry(win,width=3)
+Ax1.grid(column=1,row=21)
+tk.Button(win, text="set x Helmholtz current",command=partial(setCurrent,0)).grid(column=1, row=22)
+
+Ax2 = tk.Entry(win,width=3)
+Ax2.grid(column=2,row=21)
+tk.Button(win, text="set x Newton current",command=partial(setCurrent,1)).grid(column=2, row=22)
+
+Ay1 = tk.Entry(win,width=3)
+Ay1.grid(column=1,row=23)
+tk.Button(win, text="set y Helmholtz current").grid(column=1, row=24)
+
+Ay2 = tk.Entry(win,width=3)
+Ay2.grid(column=2,row=23)
+tk.Button(win, text="set y Newton current").grid(column=2, row=24)
+
+Az1 = tk.Entry(win,width=3)
+Az1.grid(column=1,row=25)
+tk.Button(win, text="set z Helmholtz current").grid(column=1, row=26)
+
+Az2 = tk.Entry(win,width=3)
+Az2.grid(column=2,row=25)
+tk.Button(win, text="set z Newton current").grid(column=2, row=26)
+
+
+
 
 mode = tk.StringVar(win)
 modes = {"labjack", "Keithley", "Sypris"}
 mode.set("labjack")
 mode_select = tk.OptionMenu(win,mode,*modes)
 mode_select.grid(column=1,row=7)
-tk.Button(win, text="Initiliaze",command=initialize_sensors).grid(column=2, row=7)
+tk.Button(win, text="Initiliaze",command=initialize_Click).grid(column=2, row=7)
 
 
 if __name__ == '__main__':
 
     conversion = 0.0015716 #conversion*steps = mm
-    limit_b = 10000 #direction limits. not implemented will remove in final version
-    limit_f = 10000
-    limit_u = 10000
-    limit_d = 10000
-    xlim = 440 #limit in z direction is 440 mm
-    ylim = -185 #limit in y direction is 185 mm
+    xlim = 450 #limit in z direction is 440 mm
+    ylim = -200 #limit in y direction is 185 mm
     DESIRED_SAMPLES = 10000
 
     win.mainloop()
