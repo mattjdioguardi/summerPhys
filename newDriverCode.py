@@ -435,8 +435,8 @@ def Two_D_map(step, xinitial, yinitial, xfinal, yfinal,relative_pos,abs_pos,mode
             xfield = np.array(Scan_Data[2]).reshape(ylen, zlen)
             yfield = np.array(Scan_Data[3]).reshape(ylen, zlen)
             zfield = np.array(Scan_Data[4]).reshape(ylen, zlen)
-            
-    
+
+
         xlevels, xcenter = TD_plot(zmatrix,ymatrix,xfield,"X")
         ylevels, ycenter = TD_plot(zmatrix,ymatrix,yfield,"Y")
         zlevels, zcenter = TD_plot(zmatrix,ymatrix,zfield,"Z")
@@ -641,6 +641,13 @@ tk.Button(win, text="set z Helmholtz current").grid(column=1, row=26)
 Az2 = tk.Entry(win,width=3)
 Az2.grid(column=2,row=25)
 tk.Button(win, text="set z Newton current").grid(column=2, row=26)
+
+reg = tk.Entry(win,width=3)
+reg.grid(column=4,row=21)
+tk.Button(win, text="auto zero",command=partial(auto_zero,(5000,0),4)).grid(column=1, row=22)
+
+
+
 
 
 

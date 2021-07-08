@@ -99,3 +99,23 @@ print("testing testin")
 
 
 
+def auto_zero(coil,axis):
+    #this will not be able to stay as a list as multiple lab jacks will require
+    #adressing different devices
+    if(coil[1] < 2):
+        jack = d
+    else:
+        jack = e
+    low = 0
+    high = 5
+    Bfield = []
+    for _ in range(10):
+        voltages = np.linspace(low,high,11)
+        Bfield = np.zeros(len(voltages))
+        for i, v in enumerate(voltages):
+            jack.writeRegister(coil[0],v)
+            Bfield[i] = abs(0 - U6_Point(relative_pos)[axis])
+        low = voltages[index(min(Bfeild)) -5]
+        high = voltages[index(min(Bfeild)) +5]
+    jack.writeRegister(coil[0],min(Bfeild))
+
