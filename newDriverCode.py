@@ -655,15 +655,18 @@ def auto_zero(coil,axis):
     low = 0
     high = 5
     Bfield = []
-    for _ in range(10):
+    for r in range(5):
+        print(r)
         voltages = np.linspace(low,high,11)
         Bfield = np.zeros(len(voltages))
+        offset = (high - low)/11
         for i, v in enumerate(voltages):
             jack.writeRegister(coil[0],v)
             Bfield[i] = abs(0 - U6_Point(relative_pos)[axis])
-        low = voltages[index(min(Bfeild)) -5]
-        high = voltages[index(min(Bfeild)) +5]
-    jack.writeRegister(coil[0],min(Bfeild))
+        low = voltages[list(Bfield).index(min(Bfield))] - offset
+        high = voltages[list(Bfield).index(min(Bfield))] + offset
+        print(min(Bfield))
+    jack.writeRegister(coil[0],voltages[list(Bfield).index(min(Bfield))])
 
 
 
@@ -671,7 +674,7 @@ def auto_zero(coil,axis):
 
 reg = tk.Entry(win,width=3)
 reg.grid(column=4,row=21)
-tk.Button(win, text="auto zero",command=partial(auto_zero,(5000,0),4)).grid(column=1, row=22)
+tk.Button(win, text="auto zero",command=partial(auto_zero,(5000,0),4)).grid(column=4, row=22)
 
 
 
