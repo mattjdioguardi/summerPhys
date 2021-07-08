@@ -620,11 +620,11 @@ def setCurrent(coil):
 
 Ax1 = tk.Entry(win,width=3)
 Ax1.grid(column=1,row=21)
-tk.Button(win, text="set x Helmholtz current",command=partial(setCurrent,0)).grid(column=1, row=22)
+tk.Button(win, text="set z Helmholtz current",command=partial(setCurrent,0)).grid(column=1, row=22)
 
 Ax2 = tk.Entry(win,width=3)
 Ax2.grid(column=2,row=21)
-tk.Button(win, text="set x Newton current",command=partial(setCurrent,1)).grid(column=2, row=22)
+tk.Button(win, text="set z Newton current",command=partial(setCurrent,1)).grid(column=2, row=22)
 
 Ay1 = tk.Entry(win,width=3)
 Ay1.grid(column=1,row=23)
@@ -636,11 +636,11 @@ tk.Button(win, text="set y Newton current",command=partial(setCurrent,3)).grid(c
 
 Az1 = tk.Entry(win,width=3)
 Az1.grid(column=1,row=25)
-tk.Button(win, text="set z Helmholtz current").grid(column=1, row=26)
+tk.Button(win, text="set x Helmholtz current").grid(column=1, row=26)
 
 Az2 = tk.Entry(win,width=3)
 Az2.grid(column=2,row=25)
-tk.Button(win, text="set z Newton current").grid(column=2, row=26)
+tk.Button(win, text="set x Newton current").grid(column=2, row=26)
 
 
 
@@ -671,10 +671,14 @@ def auto_zero(coil,axis):
 
 
 
-
-reg = tk.Entry(win,width=3)
 reg.grid(column=4,row=21)
-tk.Button(win, text="auto zero",command=partial(auto_zero,(5000,0),4)).grid(column=4, row=22)
+tk.Button(win, text="auto zero z",command=partial(auto_zero,(5000,0),4)).grid(column=4, row=21)
+
+reg.grid(column=4,row=22)
+tk.Button(win, text="auto zero y",command=partial(auto_zero,(5000,3),2)).grid(column=4, row=22)
+
+reg.grid(column=4,row=23)
+tk.Button(win, text="auto zero x",command=partial(auto_zero,(5000,0),4)).grid(column=4, row=23)
 
 
 
