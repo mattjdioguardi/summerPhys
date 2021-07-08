@@ -5,6 +5,7 @@ import pyvisa
 from datetime import datetime
 from multiprocessing import Process, Lock
 import u6
+import u3
 from functools import partial
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
@@ -18,7 +19,10 @@ import numpy as np
 ###################NEW 2021##########################
 
 ################################serial setup###################################
-#ser = serial.Serial('/dev/cu.usbmodem0E22D9A1',baudrate=115200)  # open serial port
+ser = serial.Serial('/dev/cu.usbmodem0E22D9A1',baudrate=115200)  # open serial port
+e = u3.U3()
+e.getCalibrationData()
+print("Configuring U6 stream")
 
 ########globals :(((##################
 abs_pos = [0,0]
@@ -238,7 +242,7 @@ def initialize_Click():
     initialize_sensors(mode.get())
 
 
-def initialize_Sensors(mode):
+def initialize_sensors(mode):
     """Initiliazes the selected sensor"""
 
     global inst
@@ -366,7 +370,7 @@ def Two_D_map(step, xinitial, yinitial, xfinal, yfinal,relative_pos,abs_pos,mode
         Scan_Data = [[],[],[],[],[]]
         #this is vile should just make a funtion that swaps the directions
         #to deceased to do that rn this will work
-        if dominant == y:
+        if dominant == "y":
             while(round(relative_pos[0]) != xfinal):
                 ser.write((str.encode(str(40000))))
                 ser.write((str.encode('m')))
@@ -399,16 +403,13 @@ def Two_D_map(step, xinitial, yinitial, xfinal, yfinal,relative_pos,abs_pos,mode
             yfield = np.rot90(np.fliplr(np.array(Scan_Data[3]).reshape(zlen, ylen)))
             zfield = np.rot90(np.fliplr(np.array(Scan_Data[4]).reshape(zlen, ylen)))
 
-            xlevels, xcenter = TD_plot(zmatrix,ymatrix,xfield,"X")
-            ylevels, ycenter = TD_plot(zmatrix,ymatrix,yfield,"Y")
-            zlevels, zcenter = TD_plot(zmatrix,ymatrix,zfield,"Z")
         else:
             while(round(relative_pos[1]) != yfinal):
                 ser.write((str.encode(str(40000))))
                 ser.write((str.encode('m')))
                 ser.write((str.encode(str(30000))))
                 ser.write((str.encode('M')))
-                goTo(xinitial,relative_pos[0], relative_pos,abs_pos)
+                goTo(xinitial,relative_pos[1], relative_pos,abs_pos)
                 ser.write((str.encode(str(2500))))
                 ser.write((str.encode('m')))
                 ser.write((str.encode(str(2500))))
@@ -434,6 +435,11 @@ def Two_D_map(step, xinitial, yinitial, xfinal, yfinal,relative_pos,abs_pos,mode
             xfield = np.array(Scan_Data[2]).reshape(ylen, zlen)
             yfield = np.array(Scan_Data[3]).reshape(ylen, zlen)
             zfield = np.array(Scan_Data[4]).reshape(ylen, zlen)
+            
+    
+        xlevels, xcenter = TD_plot(zmatrix,ymatrix,xfield,"X")
+        ylevels, ycenter = TD_plot(zmatrix,ymatrix,yfield,"Y")
+        zlevels, zcenter = TD_plot(zmatrix,ymatrix,zfield,"Z")
 
         fig4, ZY = plt.subplots(1,1)
         plt.streamplot(zmatrix,ymatrix,zfield,yfield)
@@ -604,9 +610,13 @@ tk.Button(win, text="Advanced Settings",command=advancedNewWindow).grid(column=1
 def setCurrent(coil):
     #this will not be able to stay as a list as multiple lab jacks will require
     #adressing different devices
-    coils = [(5000,Ax1.get),(5002,Ax2.get)]
-    d.writeResgister(coils[coil][0],coils[coil][1])
-
+    coils = [(5000,Ax1.get),(5002,Ax2.get),(5000,Ay1.get),(5002,Ay2.get)]
+    print(coils[coil][0])
+    print(coils[coil][1]())
+    if(coil < 2):
+        d.writeRegister(coils[coil][0],float(coils[coil][1]()))
+    else:
+        e.writeRegister(coils[coil][0],float(coils[coil][1]()))
 
 Ax1 = tk.Entry(win,width=3)
 Ax1.grid(column=1,row=21)
@@ -618,11 +628,11 @@ tk.Button(win, text="set x Newton current",command=partial(setCurrent,1)).grid(c
 
 Ay1 = tk.Entry(win,width=3)
 Ay1.grid(column=1,row=23)
-tk.Button(win, text="set y Helmholtz current").grid(column=1, row=24)
+tk.Button(win, text="set y Helmholtz current",command=partial(setCurrent,2)).grid(column=1, row=24)
 
 Ay2 = tk.Entry(win,width=3)
 Ay2.grid(column=2,row=23)
-tk.Button(win, text="set y Newton current").grid(column=2, row=24)
+tk.Button(win, text="set y Newton current",command=partial(setCurrent,3)).grid(column=2, row=24)
 
 Az1 = tk.Entry(win,width=3)
 Az1.grid(column=1,row=25)
@@ -647,7 +657,7 @@ if __name__ == '__main__':
 
     conversion = 0.0015716 #conversion*steps = mm
     xlim = 450 #limit in z direction is 440 mm
-    ylim = -200 #limit in y direction is 185 mm
+    ylim = -210 #limit in y direction is 185 mm
     DESIRED_SAMPLES = 10000
 
     win.mainloop()
