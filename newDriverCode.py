@@ -642,6 +642,33 @@ Az2 = tk.Entry(win,width=3)
 Az2.grid(column=2,row=25)
 tk.Button(win, text="set z Newton current").grid(column=2, row=26)
 
+
+
+
+def auto_zero(coil,axis):
+    #this will not be able to stay as a list as multiple lab jacks will require
+    #adressing different devices
+    if(coil[1] < 2):
+        jack = d
+    else:
+        jack = e
+    low = 0
+    high = 5
+    Bfield = []
+    for _ in range(10):
+        voltages = np.linspace(low,high,11)
+        Bfield = np.zeros(len(voltages))
+        for i, v in enumerate(voltages):
+            jack.writeRegister(coil[0],v)
+            Bfield[i] = abs(0 - U6_Point(relative_pos)[axis])
+        low = voltages[index(min(Bfeild)) -5]
+        high = voltages[index(min(Bfeild)) +5]
+    jack.writeRegister(coil[0],min(Bfeild))
+
+
+
+
+
 reg = tk.Entry(win,width=3)
 reg.grid(column=4,row=21)
 tk.Button(win, text="auto zero",command=partial(auto_zero,(5000,0),4)).grid(column=1, row=22)
