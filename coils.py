@@ -7,13 +7,13 @@ e = u3.U3()
 e.getCalibrationData()
 
 
-def auto_zero(coil,axis):
+def auto_zero(coil,axis,U6_Point):
     """given a specific coil and axis will vary that current and find the optimal
     current for getting a 0 Field"""
     #this will not be able to stay as a list as multiple lab jacks will require
     #adressing different devices
     if(coil[1] < 2):
-        jack = d
+        jack = config.d
     else:
         jack = e
     low = 0
@@ -26,7 +26,7 @@ def auto_zero(coil,axis):
         offset = (high - low)/11
         for i, v in enumerate(voltages):
             jack.writeRegister(coil[0],v)
-            Bfield[i] = abs(0 - U6_Point(relative_pos)[axis])
+            Bfield[i] = abs(0 - U6_Point(config.relative_pos)[axis])
         low = voltages[list(Bfield).index(min(Bfield))] - offset
         high = voltages[list(Bfield).index(min(Bfield))] + offset
         print(min(Bfield))
@@ -41,7 +41,7 @@ def setCurrent(coil,reg,val):
 
     #should make the entry correspond to the current not just set the entry as V
     if(coil < 2):
-        config.d.writeRegister(reg,float(val))
+        config.d.writeRegister(reg,float(val()))
     else:
-        e.writeRegister(reg,float(val))
+        e.writeRegister(reg,float(val()))
 

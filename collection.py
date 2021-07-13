@@ -1,6 +1,7 @@
 import u6
 import pyvisa
 import time
+import config
 
 def initialize_sensors(mode):
     """Initiliazes the selected sensor"""
@@ -65,7 +66,7 @@ def U6_Point(relative_pos):
     packets_collected = 0
     Bfield = [relative_pos[0], relative_pos[1], 0, 0, 0]
     config.d.streamStart()
-    while(samples_collected < 3*DESIRED_SAMPLES):
+    while(samples_collected < 3*config.DESIRED_SAMPLES):
         Bcur = next(config.d.streamData())
         Bfield[2] += sum(Bcur["AIN0"])/len(Bcur["AIN0"])
         Bfield[3] += sum(Bcur["AIN1"])/len(Bcur["AIN1"])
@@ -91,7 +92,7 @@ def collect(relative_pos,data, mode):
     for x in range(len(Bfield)):
         data[x].append(Bfield[x])
 
-def get_noise():
+def get_noise(mode):
     if(mode == "Keithley"):
         Bfield = [[],[],[]]
         for i in range(100):
@@ -105,7 +106,7 @@ def get_noise():
         packets_collected = 0
         Bfield = [[], [], []]
         config.d.streamStart()
-        while(samples_collected < 3*DESIRED_SAMPLES):
+        while(samples_collected < 3*config.DESIRED_SAMPLES):
             Bcur = next(config.d.streamData())
             Bfield[2] += Bcur["AIN0"]
             Bfield[3] += Bcur["AIN1"]

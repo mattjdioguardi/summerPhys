@@ -42,8 +42,8 @@ def update_position(direc, step, abs_steps,abs_pos, relative_pos,relative_offset
     if direc == 'u':
         abs_steps[1] += step
 
-    abs_pos[0] = abs_steps[0]*conversion
-    abs_pos[1] = abs_steps[1]*conversion
+    abs_pos[0] = abs_steps[0]*config.conversion
+    abs_pos[1] = abs_steps[1]*config.conversion
     relative_pos[0] = abs_pos[0]-relative_offset[0]
     relative_pos[1] = abs_pos[1]-relative_offset[1]
 
@@ -72,26 +72,26 @@ def move(direc, step,abs_Label, relative_Label):
     abs_Label.config(text = "%.3g , %.3g" %(config.abs_pos[0],config.abs_pos[1]))
     relative_Label.config(text = "%.3g , %.3g" %(config.relative_pos[0],config.relative_pos[1]))
 
-def goTo(x,y,relative_pos,abs_pos):
+def goTo(x,y,relative_pos,abs_pos,abs_Label,relative_Label):
     """given an x(z) and y position the stepers move to those coordinates in
     terms of the given position relative or absolute can be passed"""
 
     if(x<relative_pos[0] and abs_pos[0] - abs(relative_pos[0]-x) >= 0):
-        if move('b',abs(relative_pos[0]-x)): return -1
-    elif(x>relative_pos[0] and abs_pos[0] + abs(relative_pos[0]-x) <= xlim):
-        if move('f',abs(relative_pos[0]-x)): return -1
-    if(y<relative_pos[1] and abs_pos[1] - abs(relative_pos[1]-y) >= ylim):
-        if move('d',abs(relative_pos[1]-y)): return -1
+        if move('b',abs(relative_pos[0]-x),abs_Label,relative_Label): return -1
+    elif(x>relative_pos[0] and abs_pos[0] + abs(relative_pos[0]-x) <= config.xlim):
+        if move('f',abs(relative_pos[0]-x),abs_Label,relative_Label): return -1
+    if(y<relative_pos[1] and abs_pos[1] - abs(relative_pos[1]-y) >= config.ylim):
+        if move('d',abs(relative_pos[1]-y),abs_Label,relative_Label): return -1
     elif(y>relative_pos[1] and abs_pos[1] + abs(relative_pos[1]-y) <= 0):
-        if move('u',abs(relative_pos[1]-y)): return -1
+        if move('u',abs(relative_pos[1]-y),abs_Label,relative_Label): return -1
 
-def abs_home(abs_pos):
+def abs_home(abs_pos,abs_label,relative_Label):
     """moves the steppers back to the Absolute zero position"""
-    if goTo(0,0,abs_pos,abs_pos): return -1
+    if goTo(0,0,abs_pos,abs_pos,abs_label,relative_Label): return -1
 
-def relative_home(relative_pos,abs_pos):
+def relative_home(relative_pos,abs_pos,abs_label,relative_Label):
     """moves the steppers back to the relative home position"""
-    if goTo(0,0,relative_pos, abs_pos): return -1
+    if goTo(0,0,relative_pos, abs_pos,abs_label,relative_Label): return -1
 
 def set_speed(yspeed,xspeed):
     """sets the speed of the stepper drivers(reference driver code)"""

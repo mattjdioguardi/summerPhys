@@ -19,7 +19,7 @@ def start_gui():
         goTo. This uses relative coordinates"""
         x = int(xmove.get())#make this more elegant for restriction to ints
         y = int(ymove.get())
-        if goTo(x,y,relative_pos,abs_pos):return -1
+        if goTo(x,y,relative_pos,abs_pos,abs_Label,relative_Label):return -1
 
     def initialize_Click():
         """call for tkinter to make initializing funtion portable"""
@@ -28,11 +28,9 @@ def start_gui():
     def scan_Click():
         """funtion only needed for tkinter so that the 'core function' can be portable
         as pulling data from entries is vile"""
-        global relative_pos
-        global abs_pos
         scan(int(step_size.get()),int(xstart.get()),int(ystart.get()),
-        int(xend.get()),int(yend.get()),relative_pos, abs_pos, mode.get(),
-        save.get())
+        int(xend.get()),int(yend.get()),config.relative_pos, config.abs_pos, mode.get(),
+        save.get(),abs_Label,relative_Label)
 
     def Field_Window(relative_pos):
         """opens a new window displaying the field at the current point"""
@@ -52,11 +50,9 @@ def start_gui():
 
     def Two_D_map_Click():
         """helper code to make 2d mapping funtion portable"""
-        global relative_pos
-        global abs_pos
         Two_D_map(int(step_size.get()),int(xstart.get()),int(ystart.get()),
-                  int(xend.get()),int(yend.get()),relative_pos, abs_pos, mode.get(),
-                  save.get(),dom_dir.get())
+                  int(xend.get()),int(yend.get()),config.relative_pos, config.abs_pos, mode.get(),
+                  save.get(),dom_dir.get(),abs_Label,relative_Label)
 
     def advancedNewWindow():
         """opens window with advanced settings"""
@@ -77,15 +73,23 @@ def start_gui():
     tk.Label(win, text="absolute position").grid(row=1,column=1)
     abs_Label = tk.Label(win, text = "%s , %s" %(config.abs_pos[0],config.abs_pos[1]))
     abs_Label.grid(column=1, row=2)
-    tk.Button(win, text="home to absolute 0",command=partial(abs_home,config.abs_pos)).grid(column=1, row=4)
+    
 
     tk.Label(win, text="relative position").grid(row=1,column=2)
     relative_Label = tk.Label(win, text = "%s , %s" %(config.relative_pos[0],config.relative_pos[1]))
     relative_Label.grid(column=2, row=2)
+    
+    
     tk.Button(win, text="set relative 0",
               command=partial(set_relative_zero,config.relative_pos,
               config.relative_offset,config.abs_pos,relative_Label)).grid(column=2, row=3)
-    tk.Button(win, text="home to relative 0",command=partial(relative_home,config.relative_pos,config.abs_pos)).grid(column=2, row=4)
+    tk.Button(win, text="home to absolute 0",
+              command=partial(abs_home,config.abs_pos,abs_Label,
+                              relative_Label)).grid(column=1, row=4)
+    tk.Button(win, text="home to relative 0",
+              command=partial(relative_home,config.relative_pos,
+                              config.abs_pos,abs_Label,
+                              relative_Label)).grid(column=2, row=4)
 
     tk.Button(win, text="up 1",command=partial(move,'u', 1,abs_Label, relative_Label)).grid(column=6, row=4)
     tk.Button(win, text="up 10",command=partial(move,'u', 10,abs_Label, relative_Label)).grid(column=6, row=3)
@@ -165,7 +169,7 @@ def start_gui():
 
     Ay2 = tk.Entry(win,width=3)
     Ay2.grid(column=2,row=23)
-    tk.Button(win, text="set y Newton current",command=partial(setCurrent,3,5002,Ay1.get)).grid(column=2, row=24)
+    tk.Button(win, text="set y Newton current",command=partial(setCurrent,3,5002,Ay2.get)).grid(column=2, row=24)
 
     Az1 = tk.Entry(win,width=3)
     Az1.grid(column=1,row=25)
@@ -175,11 +179,11 @@ def start_gui():
     Az2.grid(column=2,row=25)
     tk.Button(win, text="set x Newton current").grid(column=2, row=26)
 
-    tk.Button(win, text="auto zero z",command=partial(auto_zero,(5000,0),4)).grid(column=4, row=21)
+    tk.Button(win, text="auto zero z",command=partial(auto_zero,(5000,0),4,U6_Point)).grid(column=4, row=21)
 
-    tk.Button(win, text="auto zero y",command=partial(auto_zero,(5000,3),2)).grid(column=4, row=22)
+    tk.Button(win, text="auto zero y",command=partial(auto_zero,(5000,3),3,U6_Point)).grid(column=4, row=22)
 
-    tk.Button(win, text="auto zero x",command=partial(auto_zero,(5000,0),4)).grid(column=4, row=23)
+    tk.Button(win, text="auto zero x",command=partial(auto_zero,(5000,0),2,U6_Point)).grid(column=4, row=23)
 
     mode = tk.StringVar(win)
     modes = {"labjack", "Keithley", "Sypris"}
