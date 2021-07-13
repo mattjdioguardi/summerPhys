@@ -11,53 +11,51 @@ def initialize_sensors(mode):
         ##############################Keithley Set Up#####################################
         rm = pyvisa.ResourceManager()
         rm.list_resources()
-        inst = rm.open_resource('GPIB0::16::INSTR')
+        config.inst = rm.open_resource('GPIB0::16::INSTR')
         print(inst.query("*IDN?"))
-        inst.write("SENS:FUNC 'VOLT:DC' ")
-        inst.write("SENS:VOLT:DC:RANG:AUTO ON ")
-        inst.write("SENS:VOLT:NPLC 5")		#integration time in PLCs, 1 PLC= 1power line cycle =1/60 sec
-        inst.write("SENS:VOLT:DC:AVER:COUN 6")
+        config.inst.write("SENS:FUNC 'VOLT:DC' ")
+        config.inst.write("SENS:VOLT:DC:RANG:AUTO ON ")
+        config.inst.write("SENS:VOLT:NPLC 5")		#integration time in PLCs, 1 PLC= 1power line cycle =1/60 sec
+        config.inst.write("SENS:VOLT:DC:AVER:COUN 6")
 
     elif(mode == "labjack"):
         # #############################u6 setup##########################################
-        d = u6.U6()
-        d.getCalibrationData()
+        config.d = u6.U6()
+        config.d.getCalibrationData()
         print("Configuring U6 stream")
-        d.streamConfig(NumChannels=3, ChannelNumbers=[0, 1, 2], ChannelOptions=[0, 0, 0],
+        config.d.streamConfig(NumChannels=3, ChannelNumbers=[0, 1, 2], ChannelOptions=[0, 0, 0],
         SettlingFactor=1, ResolutionIndex=1, ScanFrequency=10000)
 
     elif(mode == "Sypris"):
         ###################sypris setup#####################
         rm = pyvisa.ResourceManager()
         rm.list_resources()
-        inst = rm.open_resource('GPIB0::01::INSTR')
+        config.inst = rm.open_resource('GPIB0::01::INSTR')
         print(inst.query("*IDN?"))
-        inst.write("SENS#:FLUX:DC")
-        inst.write("SENS#:FLUX:RANG:AUT ON")
-        inst.write("CALC#:AVER:COUN 6")
+        config.inst.write("SENS#:FLUX:DC")
+        config.inst.write("SENS#:FLUX:RANG:AUT ON")
+        config.inst.write("CALC#:AVER:COUN 6")
 
 def Keithly_Point(relative_pos):
     """records field at a single point from GPIB and returns it in the form
     [z coordonate, y coordonate, Bx, By, Bz]"""
-    global inst
     Bfield = [0,0,0]
     for i in range(5):
-        Bfield[0] += float(inst.query("MEAS:VOLT:DC? (@204)")[:15])
-        Bfield[1] += float(inst.query("MEAS:VOLT:DC? (@206)")[:15])
-        Bfield[2] += float(inst.query("MEAS:VOLT:DC? (@203)")[:15])
-        Bfield = [relative_pos[0], relative_pos[1]] + [x/5 for x in Bfield]
+        Bfield[0] += float(config.inst.query("MEAS:VOLT:DC? (@204)")[:15])
+        Bfield[1] += float(config.inst.query("MEAS:VOLT:DC? (@206)")[:15])
+        Bfield[2] += float(config.inst.query("MEAS:VOLT:DC? (@203)")[:15])
+    Bfield = [relative_pos[0], relative_pos[1]] + [x/5 for x in Bfield]
     return Bfield
 
 def Sypris_Point(relative_pos):
     """records field at a single point from GPIB and returns it in the form
     [z coordonate, y coordonate, Bx, By, Bz]"""
-    global inst
     Bfield = [0,0,0]
     for i in range(5):
-        Bfield[0] += float(inst.query("MEAS1:FLUX?")[:-2])
-        Bfield[1] += float(inst.query("MEAS1:FLUX?")[:-2])
-        Bfield[2] += float(inst.query("MEAS1:FLUX?")[:-2])
-        Bfield = [relative_pos[0], relative_pos[1]] + [x/5 for x in Bfield]
+        Bfield[0] += float(config.cinst.query("MEAS1:FLUX?")[:-2])
+        Bfield[1] += float(config.inst.query("MEAS1:FLUX?")[:-2])
+        Bfield[2] += float(config.inst.query("MEAS1:FLUX?")[:-2])
+    Bfield = [relative_pos[0], relative_pos[1]] + [x/5 for x in Bfield]
     return Bfield
 
 def U6_Point(relative_pos):
@@ -66,9 +64,9 @@ def U6_Point(relative_pos):
     samples_collected = 0
     packets_collected = 0
     Bfield = [relative_pos[0], relative_pos[1], 0, 0, 0]
-    d.streamStart()
+    config.d.streamStart()
     while(samples_collected < 3*DESIRED_SAMPLES):
-        Bcur = next(d.streamData())
+        Bcur = next(config.d.streamData())
         Bfield[2] += sum(Bcur["AIN0"])/len(Bcur["AIN0"])
         Bfield[3] += sum(Bcur["AIN1"])/len(Bcur["AIN1"])
         Bfield[4] += sum(Bcur["AIN2"])/len(Bcur["AIN2"])
@@ -76,7 +74,7 @@ def U6_Point(relative_pos):
         packets_collected += 1
     for i in range(2,5):
         Bfield[i] /= packets_collected
-    d.streamStop()
+    config.d.streamStop()
     return Bfield
 
 def collect(relative_pos,data, mode):
@@ -94,20 +92,39 @@ def collect(relative_pos,data, mode):
         data[x].append(Bfield[x])
 
 def get_noise():
-    samples_collected = 0
-    packets_collected = 0
-    Bfield = [relative_pos[0], relative_pos[1], 0, 0, 0]
-    d.streamStart()
-    while(samples_collected < 3*DESIRED_SAMPLES):
-        Bcur = next(d.streamData())
-        Bfield[2] += Bcur["AIN0"]
-        Bfield[3] += Bcur["AIN1"]
-        Bfield[4] += Bcur["AIN2"]
+    if(mode == "Keithley"):
+        Bfield = [[],[],[]]
+        for i in range(100):
+            Bfield[0].append(float(config.inst.query("MEAS:VOLT:DC? (@204)")[:15]))
+            Bfield[1].append(float(config.inst.query("MEAS:VOLT:DC? (@206)")[:15]))
+            Bfield[2].append(float(config.inst.query("MEAS:VOLT:DC? (@203)")[:15]))
+        return Bfield
 
-        samples_collected += len(Bcur["AIN0"]) + len(Bcur["AIN1"])+ len(Bcur["AIN2"])
-        packets_collected += 1
-    for i in range(2,5):
-        Bfield[i] /= packets_collected
-    d.streamStop()
-    return Bfield
+    elif(mode == "labjack"):
+        samples_collected = 0
+        packets_collected = 0
+        Bfield = [[], [], []]
+        config.d.streamStart()
+        while(samples_collected < 3*DESIRED_SAMPLES):
+            Bcur = next(config.d.streamData())
+            Bfield[2] += Bcur["AIN0"]
+            Bfield[3] += Bcur["AIN1"]
+            Bfield[4] += Bcur["AIN2"]
+
+            samples_collected += len(Bcur["AIN0"]) + len(Bcur["AIN1"])+ len(Bcur["AIN2"])
+            packets_collected += 1
+        config.d.streamStop()
+        return Bfield
+    elif(mode == "Sypris"):
+        Bfield = [[],[],[]]
+        for i in range(100):
+            Bfield[0].append(float(config.cinst.query("MEAS1:FLUX?")[:-2]))
+            Bfield[1].append(float(config.inst.query("MEAS1:FLUX?")[:-2]))
+            Bfield[2].append(float(config.inst.query("MEAS1:FLUX?")[:-2]))
+        return Bfield
+
+
+
+
+
 
