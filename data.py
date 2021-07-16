@@ -44,8 +44,8 @@ def plot_Bfield(data):
     fig, (xBxBy,xBz) = plt.subplots(nrows=1, ncols=2, sharex=True,figsize=(12, 6))
 
     xBxBy.plot(data[0],data[2], color='tab:blue')
-    xBxBy.plot(data[0],data[3],  color='tab:orange')
-    xBz.plot(data[0],data[4],  color='tab:red')
+    xBxBy.plot(data[0],data[4],  color='tab:orange')
+    xBz.plot(data[0],data[6],  color='tab:red')
 
     xBxBy.set_xlabel('mm displacement z')
     xBxBy.set_ylabel('B field (Gauss)')
@@ -60,8 +60,8 @@ def plot_Bfield(data):
     fig2, (yBxBy,yBz) = plt.subplots(nrows=1, ncols=2, sharex=True,figsize=(12, 6))
 
     yBxBy.plot(data[1],data[2], color='tab:blue')
-    yBxBy.plot(data[1],data[3],  color='tab:orange')
-    yBz.plot(data[1],data[4],  color='tab:red')
+    yBxBy.plot(data[1],data[4],  color='tab:orange')
+    yBz.plot(data[1],data[6],  color='tab:red')
 
     yBxBy.set_xlabel('mm displacement y')
     yBxBy.set_ylabel('B field (Gauss)')
@@ -77,15 +77,15 @@ def plot_Bfield(data):
 
     plt.show()
 
-def saveData(data):
+def saveData(data,save_dir):
     """saves passed data in the form
     [[z coordonates], [y coordonates], [Bx], [By], [Bz]] to a spreadsheet that
     is timestamped"""
     now = datetime.now()
     dateString = now.strftime("%d-%m-%Y %H:%M:%S")
 
-    df = pd.DataFrame({'z':data[0], 'y': data[1], 'Bx':data[2],
-                       'By':data[3],'Bz':data[4],})
-    writer = pd.ExcelWriter("Bfield_at_"+dateString+ '.xlsx')
+    df = pd.DataFrame({'z':data[0], 'y': data[1], 'Bx':data[2], "Bx std":data[3],
+                       'By':data[4],"By std":data[5],'Bz':data[6],"Bz std":data[7],})
+    writer = pd.ExcelWriter(save_dir + "Bfield_at_"+dateString+ '.xlsx')
     df.to_excel(writer,index=False)
     writer.save()

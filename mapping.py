@@ -7,12 +7,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def scan(step,xinitial,yinitial,xfinal,yfinal,relative_pos,abs_pos,mode,save,abs_Label,relative_Label):
-    """Pulls starting coordinates, ending coordinates, and a step size from the
-    window and then moves in a very rough line between the two points. These
-    coordinates are interms of the realative zero postion. Collects
-    measurements as it goes and then saves this data to a timestamped
-    spreadsheet"""
+def scan(step,xinitial,yinitial,xfinal,yfinal,relative_pos,abs_pos,mode,save,
+         save_dir,abs_Label,relative_Label):
+    """given a step size, starting and ending coordinates, the relative
+    position of the arm, the absolute position of the arm, the data collection
+    mode(which device is being used), a bool to save the data or not,the
+    path of where to save the file maps across that line and displays plots of
+    the field intensity in all 3 axises. (The label parameters can be removed
+    if not using tkinter)"""
 
     m = None if (xfinal-xinitial) == 0 else(yfinal - yinitial)/(xfinal-xinitial)
 
@@ -46,18 +48,21 @@ def scan(step,xinitial,yinitial,xfinal,yfinal,relative_pos,abs_pos,mode,save,abs
     plot_Bfield(Scan_Data)
 
     if(save):
-        saveData(Scan_Data)
+        saveData(Scan_Data,save_dir)
 
     set_speed(40000,30000)
     if goTo(xinitial,yinitial,relative_pos,abs_pos,abs_Label,relative_Label): return -1
 
-def Two_D_map(step, xinitial, yinitial, xfinal, yfinal,relative_pos,abs_pos,mode,save,dominant,abs_Label,relative_Label):
+def Two_D_map(step, xinitial, yinitial, xfinal, yfinal,relative_pos,abs_pos,
+              mode,save,save_dir,dominant,abs_Label,relative_Label):
         """given a step size, starting and ending coordinates, the relative
-        position of the arm the absolute position of the arm, the data collection
-        mode(which device is being used), a bool to save the data or not, and
-        the dominant scan direction(z for scan all z before moving in y and y
-        for the opposite) maps across that area and displays plots of the field
-        intensity in all 3 axises"""
+        position of the arm, the absolute position of the arm, the data collection
+        mode(which device is being used), a bool to save the data or not,the
+        path of where to save the file, the dominant scan
+        direction(z for scan all z before moving in y and y for the opposite)
+        maps across that area and displays plots of the field
+        intensity in all 3 axises. (The label parameters can be removed if not
+        using tkinter)"""
 
         xfinal += 1 if xfinal > xinitial else -1
         yfinal += 1 if yfinal > yinitial else -1
@@ -94,8 +99,8 @@ def Two_D_map(step, xinitial, yinitial, xfinal, yfinal,relative_pos,abs_pos,mode
             zmatrix, ymatrix = np.meshgrid(pd.unique(Scan_Data[0]),
                                            pd.unique(Scan_Data[1]))
             xfield = np.rot90(np.fliplr(np.array(Scan_Data[2]).reshape(zlen, ylen)))
-            yfield = np.rot90(np.fliplr(np.array(Scan_Data[3]).reshape(zlen, ylen)))
-            zfield = np.rot90(np.fliplr(np.array(Scan_Data[4]).reshape(zlen, ylen)))
+            yfield = np.rot90(np.fliplr(np.array(Scan_Data[4]).reshape(zlen, ylen)))
+            zfield = np.rot90(np.fliplr(np.array(Scan_Data[6]).reshape(zlen, ylen)))
         else:
             while(round(relative_pos[1]) != yfinal):
                 set_speed(40000,30000)
@@ -120,20 +125,24 @@ def Two_D_map(step, xinitial, yinitial, xfinal, yfinal,relative_pos,abs_pos,mode
             zmatrix, ymatrix = np.meshgrid(pd.unique(Scan_Data[0]),
                                            pd.unique(Scan_Data[1]))
             xfield = np.array(Scan_Data[2]).reshape(ylen, zlen)
-            yfield = np.array(Scan_Data[3]).reshape(ylen, zlen)
-            zfield = np.array(Scan_Data[4]).reshape(ylen, zlen)
+            yfield = np.array(Scan_Data[4]).reshape(ylen, zlen)
+            zfield = np.array(Scan_Data[6]).reshape(ylen, zlen)
+
+        Noise = get_noise(mode)
 
         xlevels, xcenter = TD_plot(zmatrix,ymatrix,xfield,"X")
         ylevels, ycenter = TD_plot(zmatrix,ymatrix,yfield,"Y")
         zlevels, zcenter = TD_plot(zmatrix,ymatrix,zfield,"Z")
 
-        fig4, ZY = plt.subplots(1,1)
         plt.streamplot(zmatrix,ymatrix,zfield,yfield)
+        plt.plot(Noise[0])
+        plt.plot(Noise[1])
+        plt.plot(Noise[2])
 
         plt.show()
 
         if (save):
-            saveData(Scan_Data)
+            saveData(Scan_Data,save_dir)
 
         set_speed(40000,30000)
         if goTo(xinitial,yinitial,relative_pos,abs_pos,abs_Label,relative_Label): return -1

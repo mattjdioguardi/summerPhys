@@ -30,7 +30,7 @@ def start_gui():
         as pulling data from entries is vile"""
         scan(int(step_size.get()),int(xstart.get()),int(ystart.get()),
         int(xend.get()),int(yend.get()),config.relative_pos, config.abs_pos, mode.get(),
-        save.get(),abs_Label,relative_Label)
+        save.get(),save_dir.get(),abs_Label,relative_Label)
 
     def Field_Window(relative_pos):
         """opens a new window displaying the field at the current point"""
@@ -52,7 +52,7 @@ def start_gui():
         """helper code to make 2d mapping funtion portable"""
         Two_D_map(int(step_size.get()),int(xstart.get()),int(ystart.get()),
                   int(xend.get()),int(yend.get()),config.relative_pos, config.abs_pos, mode.get(),
-                  save.get(),dom_dir.get(),abs_Label,relative_Label)
+                  save.get(),save_dir.get(),dom_dir.get(),abs_Label,relative_Label)
 
     def advancedNewWindow():
         """opens window with advanced settings"""
@@ -73,13 +73,13 @@ def start_gui():
     tk.Label(win, text="absolute position").grid(row=1,column=1)
     abs_Label = tk.Label(win, text = "%s , %s" %(config.abs_pos[0],config.abs_pos[1]))
     abs_Label.grid(column=1, row=2)
-    
+
 
     tk.Label(win, text="relative position").grid(row=1,column=2)
     relative_Label = tk.Label(win, text = "%s , %s" %(config.relative_pos[0],config.relative_pos[1]))
     relative_Label.grid(column=2, row=2)
-    
-    
+
+
     tk.Button(win, text="set relative 0",
               command=partial(set_relative_zero,config.relative_pos,
               config.relative_offset,config.abs_pos,relative_Label)).grid(column=2, row=3)
@@ -146,8 +146,10 @@ def start_gui():
 
     save = tk.IntVar()
     tk.Checkbutton(win, text="Save Data?", variable=save).grid(column = 16, row=7)
+
+    tk.Label(win, text="save directory").grid(row=16,column=8)
     save_dir = tk.Entry(win,width=10)
-    save_dir.grid(column = 16, row=8)
+    save_dir.grid(column = 16, row=9)
 
 
     tk.Button(win, text="Get current field",command= partial(Field_Window,config.relative_pos)).grid(column=10,row=9)

@@ -1,6 +1,5 @@
 ########globals :(((##################
 
-
 abs_pos = [0,0]
 relative_pos = [0,0]
 relative_offset = [0,0]
